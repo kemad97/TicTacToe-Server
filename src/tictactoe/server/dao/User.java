@@ -1,0 +1,95 @@
+package tictactoe.server.dao;
+
+public class User {
+
+    public static final String ONLINE_STATUS = "on";
+    public static final String OFFLINE_STATUS = "of";
+    public static final String AVAILABLE_STATUS = "av";
+
+    private Integer id;
+    private String username;
+    private String hashedPassword;
+    private Integer score;
+    private String status;
+    private String avatar;
+    private Integer matches_no;
+    private Integer won_matches;
+
+    public User() {
+        score = 0;
+        status = ONLINE_STATUS;
+        matches_no = 0;
+        won_matches = 0;
+    }
+
+    public User(String username, String password) {
+        this.username = username;
+        this.hashedPassword = password;
+        status = ONLINE_STATUS;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getHashedPassword() {
+        return this.hashedPassword.hashCode() + "";
+    }
+
+    public void setHashedPassword(String hashedPassword) {
+        this.hashedPassword = hashedPassword;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public Integer getMatches_no() {
+        return matches_no;
+    }
+
+    public void setMatches_no(Integer matches_no) {
+        this.matches_no = matches_no;
+    }
+
+    public Integer getWon_matches() {
+        return won_matches;
+    }
+
+    public void setWon_matches(Integer won_matches) {
+        this.won_matches = won_matches;
+    }
+
+}
