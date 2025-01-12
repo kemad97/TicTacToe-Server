@@ -51,8 +51,10 @@ public class RequestHandler extends Thread {
                 try {
                     dis.close();
                     dos.close();
-                    System.out.println(this.user.getUsername() + " disconnected.");
-                    players.remove(this);
+                    if (this.user != null) {
+                        System.out.println(this.user.getUsername() + " disconnected.");
+                        players.remove(this);
+                    }
                     break;
                 } catch (IOException ex1) {
                     Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex1);
@@ -66,18 +68,29 @@ public class RequestHandler extends Thread {
 
         String header = jsonObject.getString("header");
 
+        System.out.println(msg);
+
         switch (header) {
             case "register":
                 try {
-
-                    System.out.println(msg);
-
                     registerNewUser(jsonObject);
                 } catch (IOException ex) {
                     //can't connect to client
                     System.out.println("can't connect to client");
                 }
 
+                break;
+            case "login":
+                try {
+
+                    loginUser(jsonObject);
+
+                } catch (IOException ex) {
+                    //can't connect to client
+                    System.out.println("can't connect to client");
+                } catch (SQLException ex) {
+                    Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 break;
             default:
                 Map<String, String> map = new HashMap<>();
@@ -86,7 +99,7 @@ public class RequestHandler extends Thread {
 
                 JSONObject response = new JSONObject(map);
 
-                System.out.println("ERROR: invaled header");
+                System.out.println("ERROR: invaled Request");
                 this.dos.writeUTF(response.toString());
         }
 
@@ -117,6 +130,49 @@ public class RequestHandler extends Thread {
             Map<String, String> map = new HashMap<>();
             map.put("header", "register_error");
             map.put("message", "use another username");
+
+            JSONObject response = new JSONObject(map);
+
+            this.dos.writeUTF(response.toString());
+        }
+
+    }
+
+    private void loginUser(JSONObject jsonObject) throws SQLException, IOException {
+        this.user = DAO.getUserByUsername(jsonObject.getString("username"));
+
+        if (user == null) {
+            //user dose not exist
+            //send to user "this username is incorect"
+            Map<String, String> map = new HashMap<>();
+            map.put("header", "login_error");
+            map.put("message", "Username is incorrect.");
+
+            JSONObject response = new JSONObject(map);
+
+            this.dos.writeUTF(response.toString());
+            return;
+        }
+
+        if (user.getHashedPassword().equals(jsonObject.getString("password"))) {
+
+            players.add(this);
+
+            //send success header to user for success login
+            Map<String, String> map = new HashMap<>();
+            map.put("header", "success");
+            map.put("message", user.getUsername());
+
+            JSONObject response = new JSONObject(map);
+
+            this.dos.writeUTF(response.toString());
+
+        } else {
+            //password incorrect
+            //send to user "this username is incorect"
+            Map<String, String> map = new HashMap<>();
+            map.put("header", "login_error");
+            map.put("message", "Password is incorrect.");
 
             JSONObject response = new JSONObject(map);
 

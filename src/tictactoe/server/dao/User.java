@@ -1,5 +1,8 @@
 package tictactoe.server.dao;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 public class User {
 
     public static final String ONLINE_STATUS = "on";
@@ -28,6 +31,17 @@ public class User {
         status = ONLINE_STATUS;
     }
 
+    User(ResultSet rs) throws SQLException {
+        this.id = rs.getInt("id");
+        this.username = rs.getString("user_name");
+        this.hashedPassword = rs.getString("password");
+        this.score = rs.getInt("score");
+        this.status = rs.getString("status");
+        this.avatar = rs.getString("avatar");
+        this.matches_no = rs.getInt("matches_no");
+        this.won_matches = rs.getInt("won_matches");
+    }
+
     public Integer getId() {
         return id;
     }
@@ -45,7 +59,7 @@ public class User {
     }
 
     public String getHashedPassword() {
-        return this.hashedPassword.hashCode() + "";
+        return this.hashedPassword;
     }
 
     public void setHashedPassword(String hashedPassword) {
