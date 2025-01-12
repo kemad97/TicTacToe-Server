@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import tictactoe.server.dao.DAO;
 import tictactoe.server.request_handler.RequestReceiver;
 
 public class TicTacToeServer extends Application {
@@ -22,6 +23,7 @@ public class TicTacToeServer extends Application {
     @Override
     public void stop() throws Exception {        
         RequestReceiver.closeServer();
+        DAO.close();
     }
     
     public static void main(String[] args) {
