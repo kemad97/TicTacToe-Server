@@ -35,12 +35,29 @@ public class DAO {
 
     public static int saveUser(User user) throws SQLException {
         PreparedStatement ps = con.prepareStatement("INSERT INTO users(id, user_name, password) VALUES (?, ?, ?)");
-        
-        ps.setInt(1, getMaxID()+1);
+
+        ps.setInt(1, getMaxID() + 1);
         ps.setString(2, user.getUsername());
-        ps.setString(3, user.getHashedPassword());        
+        ps.setString(3, user.getHashedPassword());
 
         return ps.executeUpdate();
+    }
+
+    public static User getUserByUsername(String username) throws SQLException {
+        PreparedStatement ps = con.prepareStatement("SELECT * FROM users WHERE user_name = ?",
+        ResultSet.TYPE_FORWARD_ONLY,
+        ResultSet.CONCUR_READ_ONLY);
+
+        ps.setString(1, username);
+
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            return new User(rs);
+        } else {
+            return null;
+        }
+
     }
 
     public static void close() throws SQLException {
