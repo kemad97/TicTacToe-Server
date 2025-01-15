@@ -5,22 +5,22 @@ import java.sql.SQLException;
 
 public class User {
 
-    public static final String ONLINE_STATUS = "on";
-    public static final String OFFLINE_STATUS = "of";
-    public static final String AVAILABLE_STATUS = "av";
+    public static final int NOT_AVAILABLE = 1;//logged in 
+    public static final int AVAILABLE = 2;//waiting for requset to play
+    public static final int IN_GAME = 3;//playing with another
 
     private Integer id;
     private String username;
     private String hashedPassword;
     private Integer score;
-    private String status;
+    private int status;
     private String avatar;
     private Integer matches_no;
     private Integer won_matches;
 
     public User() {
         score = 0;
-        status = ONLINE_STATUS;
+        status = NOT_AVAILABLE;
         matches_no = 0;
         won_matches = 0;
     }
@@ -28,7 +28,7 @@ public class User {
     public User(String username, String password) {
         this.username = username;
         this.hashedPassword = password;
-        status = ONLINE_STATUS;
+        status = NOT_AVAILABLE;
     }
 
     User(ResultSet rs) throws SQLException {
@@ -36,7 +36,7 @@ public class User {
         this.username = rs.getString("user_name");
         this.hashedPassword = rs.getString("password");
         this.score = rs.getInt("score");
-        this.status = rs.getString("status");
+        this.status = NOT_AVAILABLE;
         this.avatar = rs.getString("avatar");
         this.matches_no = rs.getInt("matches_no");
         this.won_matches = rs.getInt("won_matches");
@@ -74,11 +74,11 @@ public class User {
         this.score = score;
     }
 
-    public String getStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(int status) {
         this.status = status;
     }
 
