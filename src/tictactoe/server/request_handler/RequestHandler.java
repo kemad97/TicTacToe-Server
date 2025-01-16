@@ -118,7 +118,8 @@ public class RequestHandler extends Thread {
             //send success header to user for success regesteraion
             Map<String, String> map = new HashMap<>();
             map.put("header", "success");
-            map.put("message", user.getUsername());
+            map.put("username", user.getUsername());
+            map.put("score", user.getScore() + "");
 
             JSONObject response = new JSONObject(map);
 
@@ -174,7 +175,8 @@ public class RequestHandler extends Thread {
             //send success header to user for success login
             Map<String, String> map = new HashMap<>();
             map.put("header", "success");
-            map.put("message", user.getUsername());
+            map.put("username", user.getUsername());
+            map.put("score", user.getScore() + "");
 
             JSONObject response = new JSONObject(map);
 
