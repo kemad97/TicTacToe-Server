@@ -7,6 +7,9 @@
 *.war
 *.ear
 
+dist/TicTacToe-Server.html
+dist/TicTacToe-Server.jnlp
+
 !dist/lib/json-20250107.jar
 
 ### JDeveloper template
@@ -85,3 +88,4 @@ gradle-app.setting
 
 # sftp configuration file
 sftp-config.json
+/dist/
