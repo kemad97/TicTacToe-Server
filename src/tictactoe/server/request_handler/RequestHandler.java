@@ -18,13 +18,13 @@ public class RequestHandler extends Thread {
 
     public static boolean working;
 
-    private static Vector<RequestHandler> players;
+    private static Vector<RequestHandler> users;
     private DataInputStream dis;
     private DataOutputStream dos;
     private User user;
 
     static {
-        players = new Vector<>();
+        users = new Vector<>();
         working = false;
     }
 
@@ -53,7 +53,7 @@ public class RequestHandler extends Thread {
                     dos.close();
                     if (this.user != null) {
                         System.out.println(this.user.getUsername() + " disconnected.");
-                        players.remove(this);
+                        users.remove(this);
                     }
                     break;
                 } catch (IOException ex1) {
@@ -113,7 +113,7 @@ public class RequestHandler extends Thread {
         try {
             DAO.saveUser(user);
 
-            players.add(this);
+            users.add(this);
 
             //send success header to user for success regesteraion
             Map<String, String> map = new HashMap<>();
@@ -154,9 +154,22 @@ public class RequestHandler extends Thread {
             return;
         }
 
+        //chck if the user is logged in
+        if (isLoggedin(user.getUsername())) {
+            //send success header to user for success login
+            Map<String, String> map = new HashMap<>();
+            map.put("header", "error");
+            map.put("message", "this user is logged in.");
+
+            JSONObject response = new JSONObject(map);
+
+            this.dos.writeUTF(response.toString());
+            return;
+        }
+
         if (user.getHashedPassword().equals(jsonObject.getString("password"))) {
 
-            players.add(this);
+            users.add(this);
 
             //send success header to user for success login
             Map<String, String> map = new HashMap<>();
@@ -178,6 +191,15 @@ public class RequestHandler extends Thread {
 
             this.dos.writeUTF(response.toString());
         }
+    }
+
+    private boolean isLoggedin(String username) {
+        for (RequestHandler u : users) {
+            if (u.user.getUsername().equals(username)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
