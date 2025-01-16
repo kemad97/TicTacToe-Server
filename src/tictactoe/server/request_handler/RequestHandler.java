@@ -3,6 +3,7 @@ package tictactoe.server.request_handler;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ public class RequestHandler extends Thread {
     public static boolean working;
 
     private static Vector<RequestHandler> users;
+    private Socket socket;
     private DataInputStream dis;
     private DataOutputStream dos;
     private User user;
@@ -28,10 +30,11 @@ public class RequestHandler extends Thread {
         working = false;
     }
 
-    public RequestHandler(Socket client) {
+    public RequestHandler(Socket socket, ServerSocket serverSocket) {
         try {
-            dis = new DataInputStream(client.getInputStream());
-            dos = new DataOutputStream(client.getOutputStream());
+            this.socket = socket;
+            dis = new DataInputStream(socket.getInputStream());
+            dos = new DataOutputStream(socket.getOutputStream());
 
             user = new User();
 
@@ -40,25 +43,39 @@ public class RequestHandler extends Thread {
             Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        //listen if server is douwn
+        new Thread(() -> {
+            while (true) {
+                if (serverSocket.isClosed()) {
+                    cloaseUserIOStreams();
+                    break;
+                }
+            }
+        }).start();
+
+    }
+
+    public void cloaseUserIOStreams() {
+        try {
+            dis.close();
+            dos.close();
+            socket.close();
+        } catch (IOException ex) {
+            Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
     public void run() {
-        while (true) {
+        while (socket.isConnected()) {
             try {
                 handleRequests(dis.readUTF());
             } catch (IOException ex) {
-                try {
-                    dis.close();
-                    dos.close();
-                    if (this.user != null) {
-                        System.out.println(this.user.getUsername() + " disconnected.");
-                        users.remove(this);
-                    }
-                    break;
-                } catch (IOException ex1) {
-                    Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex1);
+                if (this.user != null) {
+                    System.out.println(this.user.getUsername() + " disconnected.");
+                    users.remove(this);
                 }
+                break;
             }
         }
     }
@@ -118,7 +135,8 @@ public class RequestHandler extends Thread {
             //send success header to user for success regesteraion
             Map<String, String> map = new HashMap<>();
             map.put("header", "success");
-            map.put("message", user.getUsername());
+            map.put("username", user.getUsername());
+            map.put("score", user.getScore() + "");
 
             JSONObject response = new JSONObject(map);
 
@@ -174,7 +192,8 @@ public class RequestHandler extends Thread {
             //send success header to user for success login
             Map<String, String> map = new HashMap<>();
             map.put("header", "success");
-            map.put("message", user.getUsername());
+            map.put("username", user.getUsername());
+            map.put("score", user.getScore() + "");
 
             JSONObject response = new JSONObject(map);
 
