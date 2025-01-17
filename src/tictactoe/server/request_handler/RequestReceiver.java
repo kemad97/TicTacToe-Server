@@ -7,7 +7,6 @@ import java.net.Socket;
 public class RequestReceiver {
 
     private static ServerSocket serverSocket;
-    private Socket client;
 
     static {
         serverSocket = null;
@@ -15,8 +14,7 @@ public class RequestReceiver {
 
     public static void changeServerStatus() {
         try {
-            RequestHandler.working = !RequestHandler.working;
-            if (RequestHandler.working) {
+            if (serverSocket == null || serverSocket.isClosed()) {
                 serverSocket = new ServerSocket(8080);
                 new RequestReceiver();
             } else {
@@ -37,21 +35,19 @@ public class RequestReceiver {
             }
         }
     }
-    
+
     public RequestReceiver() {
         new Thread(() -> {
             startServer();
         }).start();
     }
-    
 
     private void startServer() {
         System.out.println("started");
-        while (RequestHandler.working) {
+        while (!serverSocket.isClosed()) {
             try {
-                client = serverSocket.accept();
 
-                new RequestHandler(client);
+                new RequestHandler(serverSocket.accept(), serverSocket);
 
             } catch (IOException ex) {
                 //lose connection

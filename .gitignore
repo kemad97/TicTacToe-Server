@@ -89,3 +89,9 @@ gradle-app.setting
 # sftp configuration file
 sftp-config.json
 /dist/
+
+/dist/*
+/build/*
+/nbproject/private/*
+/build.xml
+/manifest.mf
