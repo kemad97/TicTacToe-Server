@@ -20,7 +20,7 @@ public class User {
 
     public User() {
         score = 0;
-        status = NOT_AVAILABLE;
+        status = AVAILABLE;
         matches_no = 0;
         won_matches = 0;
     }
@@ -28,7 +28,7 @@ public class User {
     public User(String username, String password) {
         this.username = username;
         this.hashedPassword = password;
-        status = NOT_AVAILABLE;
+        status = AVAILABLE;
     }
 
     User(ResultSet rs) throws SQLException {
@@ -36,7 +36,7 @@ public class User {
         this.username = rs.getString("user_name");
         this.hashedPassword = rs.getString("password");
         this.score = rs.getInt("score");
-        this.status = NOT_AVAILABLE;
+        this.status = AVAILABLE;
         this.avatar = rs.getString("avatar");
         this.matches_no = rs.getInt("matches_no");
         this.won_matches = rs.getInt("won_matches");
