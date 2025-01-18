@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.sql.SQLNonTransientConnectionException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
@@ -25,8 +26,7 @@ public class RequestHandler extends Thread {
     private DataOutputStream dos;
     private User user;
 
-    static 
-    {
+    static {
         users = new Vector<>();
         working = false;
     }
@@ -40,8 +40,7 @@ public class RequestHandler extends Thread {
             user = new User();
 
             start();
-        }
-        catch (IOException ex) {
+        } catch (IOException ex) {
             Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -101,15 +100,14 @@ public class RequestHandler extends Thread {
                 break;
             case "login":
                 try {
-
                     loginUser(jsonObject);
-
                 } catch (IOException ex) {
                     //can't connect to client
                     System.out.println("can't connect to client");
-                } catch (SQLException ex) {
-                    Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                break;
+            case "request_start_match":
+                handleMatchRequest(jsonObject);
                 break;
             default:
                 Map<String, String> map = new HashMap<>();
@@ -130,7 +128,7 @@ public class RequestHandler extends Thread {
         user.setHashedPassword(jsonObject.getString("password"));
 
         try {
-            DAO.saveUser(user);
+            DAO.getInstance().saveUser(user);
 
             users.add(this);
 
@@ -144,6 +142,15 @@ public class RequestHandler extends Thread {
 
             this.dos.writeUTF(response.toString());
 
+        } catch (SQLNonTransientConnectionException ex) {
+            Map<String, String> map = new HashMap<>();
+            map.put("header", "error");
+            map.put("message", "server error.");
+            JSONObject response = new JSONObject(map);
+
+            this.dos.writeUTF(response.toString());
+
+            System.out.println("Database is down");
         } catch (SQLException ex) {
             //redundant username
             //send to user to change the username
@@ -154,12 +161,27 @@ public class RequestHandler extends Thread {
             JSONObject response = new JSONObject(map);
 
             this.dos.writeUTF(response.toString());
+            ex.printStackTrace();
         }
 
     }
 
-    private void loginUser(JSONObject jsonObject) throws SQLException, IOException {
-        this.user = DAO.getUserByUsername(jsonObject.getString("username"));
+    private void loginUser(JSONObject jsonObject) throws IOException {
+        try {
+            this.user = DAO.getInstance().getUserByUsername(jsonObject.getString("username"));
+        } catch (SQLNonTransientConnectionException ex) {
+            Map<String, String> map = new HashMap<>();
+            map.put("header", "error");
+            map.put("message", "server error.");
+            JSONObject response = new JSONObject(map);
+
+            this.dos.writeUTF(response.toString());
+
+            System.out.println("Database is down");
+            return;
+        } catch (SQLException ex) {
+            Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         if (user == null) {
             //user dose not exist
@@ -222,13 +244,12 @@ public class RequestHandler extends Thread {
         }
         return false;
     }
-    
+
     private void handleMatchRequest(JSONObject jsonObject) throws IOException {
-        String player2_Username =jsonObject.getString("targetPlayer");
-        RequestHandler player2Handler =getPlayerHandler(player2_Username);
-        
-         if (player2Handler == null) 
-         {
+        String player2_Username = jsonObject.getString("targetPlayer");
+        RequestHandler player2Handler = getPlayerHandler(player2_Username);
+
+        if (player2Handler == null) {
             // Player 2 is not online
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("header", "match_error");
@@ -236,7 +257,7 @@ public class RequestHandler extends Thread {
             this.dos.writeUTF(errorResponse.toString());
             return;
         }
-         
+
         // Forward the request to Player 2
         JSONObject matchRequest = new JSONObject();
         matchRequest.put("header", "match_request");
@@ -257,19 +278,17 @@ public class RequestHandler extends Thread {
                 e.printStackTrace();
             }
         }).start(); */
-         
-        
-    }
-    
-    private RequestHandler getPlayerHandler(String username) {
-    for (RequestHandler userHandler : users) {
-        if (userHandler.user != null && userHandler.user.getUsername().equals(username)) {
-            return userHandler; // Return the handler if the username matches
-        }
-    }
-    return null; // Return null if the player is not found
-}
 
+    }
+
+    private RequestHandler getPlayerHandler(String username) {
+        for (RequestHandler userHandler : users) {
+            if (userHandler.user != null && userHandler.user.getUsername().equals(username)) {
+                return userHandler; // Return the handler if the username matches
+            }
+        }
+        return null; // Return null if the player is not found
+    }
 
     private void handleMatchResponse(JSONObject jsonObject) throws IOException {
         String fromPlayer = jsonObject.getString("fromPlayer"); // Player 1 who initiated the request
@@ -294,7 +313,7 @@ public class RequestHandler extends Thread {
             }
         }
     }
-    
+
     private void startMatch(RequestHandler player1Handler, RequestHandler player2Handler) {
         try {
             JSONObject startGameMessage = new JSONObject();
@@ -312,6 +331,5 @@ public class RequestHandler extends Thread {
             e.printStackTrace();
         }
     }
-
 
 }

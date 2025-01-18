@@ -5,24 +5,27 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.derby.jdbc.ClientDriver;
 
 public class DAO {
 
-    private static Connection con;
+    private static DAO instance;
+    private Connection con;
 
-    static {
-        try {
-            DriverManager.registerDriver(new ClientDriver());
-            con = DriverManager.getConnection("jdbc:derby://localhost:1527/tic_tac_toe", "root", "root");
-        } catch (SQLException ex) {
-            Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    private DAO() throws SQLException {
+        DriverManager.registerDriver(new ClientDriver());
+        con = DriverManager.getConnection("jdbc:derby://localhost:1527/tic_tac_toe", "root", "root");
+
     }
 
-    private static int getMaxID() throws SQLException {
+    public static DAO getInstance() throws SQLException {
+        if (instance == null) {
+            return instance = new DAO();
+        }
+        return instance;
+    }
+
+    private int getMaxID() throws SQLException {
         PreparedStatement ps = con.prepareStatement("SELECT MAX(id) as maxID from users");
         ResultSet rs = ps.executeQuery();
 
@@ -33,7 +36,7 @@ public class DAO {
         }
     }
 
-    public static int saveUser(User user) throws SQLException {
+    public int saveUser(User user) throws SQLException {
         PreparedStatement ps = con.prepareStatement("INSERT INTO users(id, user_name, password) VALUES (?, ?, ?)");
 
         ps.setInt(1, getMaxID() + 1);
@@ -43,10 +46,10 @@ public class DAO {
         return ps.executeUpdate();
     }
 
-    public static User getUserByUsername(String username) throws SQLException {
+    public User getUserByUsername(String username) throws SQLException {
         PreparedStatement ps = con.prepareStatement("SELECT * FROM users WHERE user_name = ?",
-        ResultSet.TYPE_FORWARD_ONLY,
-        ResultSet.CONCUR_READ_ONLY);
+                ResultSet.TYPE_FORWARD_ONLY,
+                ResultSet.CONCUR_READ_ONLY);
 
         ps.setString(1, username);
 
@@ -60,7 +63,7 @@ public class DAO {
 
     }
 
-    public static void close() throws SQLException {
+    public void close() throws SQLException {
         con.close();
     }
 
