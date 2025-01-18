@@ -18,7 +18,7 @@ public class RequestReceiver {
                 serverSocket = new ServerSocket(8080);
                 new RequestReceiver();
             } else {
-                serverSocket.close();
+                closeServer();
             }
         } catch (IOException ex) {
             ex.printStackTrace();
