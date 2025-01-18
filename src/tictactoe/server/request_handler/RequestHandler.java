@@ -25,7 +25,8 @@ public class RequestHandler extends Thread {
     private DataOutputStream dos;
     private User user;
 
-    static {
+    static 
+    {
         users = new Vector<>();
         working = false;
     }
@@ -39,7 +40,8 @@ public class RequestHandler extends Thread {
             user = new User();
 
             start();
-        } catch (IOException ex) {
+        }
+        catch (IOException ex) {
             Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -220,5 +222,96 @@ public class RequestHandler extends Thread {
         }
         return false;
     }
+    
+    private void handleMatchRequest(JSONObject jsonObject) throws IOException {
+        String player2_Username =jsonObject.getString("targetPlayer");
+        RequestHandler player2Handler =getPlayerHandler(player2_Username);
+        
+         if (player2Handler == null) 
+         {
+            // Player 2 is not online
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("header", "match_error");
+            errorResponse.put("message", "The requested player is not online.");
+            this.dos.writeUTF(errorResponse.toString());
+            return;
+        }
+         
+        // Forward the request to Player 2
+        JSONObject matchRequest = new JSONObject();
+        matchRequest.put("header", "match_request");
+        matchRequest.put("fromPlayer", this.user.getUsername());
+        player2Handler.dos.writeUTF(matchRequest.toString());
+        /*
+         // Start a timeout thread
+        new Thread(() -> {
+            try {
+                Thread.sleep(30000); // 30-second timeout
+                if (!player2Handler.user.isInMatch()) {
+                    JSONObject timeoutResponse = new JSONObject();
+                    timeoutResponse.put("header", "match_error");
+                    timeoutResponse.put("message", "Match request timed out.");
+                    this.dos.writeUTF(timeoutResponse.toString());
+                }
+            } catch (InterruptedException | IOException e) {
+                e.printStackTrace();
+            }
+        }).start(); */
+         
+        
+    }
+    
+    private RequestHandler getPlayerHandler(String username) {
+    for (RequestHandler userHandler : users) {
+        if (userHandler.user != null && userHandler.user.getUsername().equals(username)) {
+            return userHandler; // Return the handler if the username matches
+        }
+    }
+    return null; // Return null if the player is not found
+}
+
+
+    private void handleMatchResponse(JSONObject jsonObject) throws IOException {
+        String fromPlayer = jsonObject.getString("fromPlayer"); // Player 1 who initiated the request
+        boolean isAccepted = jsonObject.getBoolean("isAccepted"); // Whether Player 2 accepted the match
+
+        // Get Player 1's handler
+        RequestHandler fromPlayerHandler = getPlayerHandler(fromPlayer);
+
+        if (fromPlayerHandler != null) {
+            // Create response JSON
+            JSONObject response = new JSONObject();
+            response.put("header", "match_response");
+            response.put("fromPlayer", this.user.getUsername()); // Player 2 responding
+            response.put("isAccepted", isAccepted);
+
+            // Notify Player 1 of the response
+            fromPlayerHandler.dos.writeUTF(response.toString());
+
+            // If accepted, start the game logic
+            if (isAccepted) {
+                startMatch(fromPlayerHandler, this); // Pass both handlers for Player 1 and Player 2
+            }
+        }
+    }
+    
+    private void startMatch(RequestHandler player1Handler, RequestHandler player2Handler) {
+        try {
+            JSONObject startGameMessage = new JSONObject();
+            startGameMessage.put("header", "start_game");
+            startGameMessage.put("opponent", player2Handler.user.getUsername()); // Player 2's username for Player 1
+            startGameMessage.put("yourTurn", true); // Player 1 starts the game
+
+            player1Handler.dos.writeUTF(startGameMessage.toString());
+
+            startGameMessage.put("opponent", player1Handler.user.getUsername()); // Player 1's username for Player 2
+            startGameMessage.put("yourTurn", false); // Player 2 waits for Player 1's move
+
+            player2Handler.dos.writeUTF(startGameMessage.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }
