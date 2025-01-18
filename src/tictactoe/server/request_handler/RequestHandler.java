@@ -179,7 +179,7 @@ public class RequestHandler extends Thread {
         } catch (SQLNonTransientConnectionException ex) {
             Map<String, String> map = new HashMap<>();
             map.put("header", "error");
-            map.put("message", "server error.");
+            map.put("message", "Internal server error.");
             JSONObject response = new JSONObject(map);
 
             this.dos.writeUTF(response.toString());
@@ -206,7 +206,7 @@ public class RequestHandler extends Thread {
         } catch (SQLNonTransientConnectionException ex) {
             Map<String, String> map = new HashMap<>();
             map.put("header", "error");
-            map.put("message", "server error.");
+            map.put("message", "Internal server error.");
             JSONObject response = new JSONObject(map);
 
             this.dos.writeUTF(response.toString());
