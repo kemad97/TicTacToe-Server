@@ -23,7 +23,7 @@ public class TicTacToeServer extends Application {
     @Override
     public void stop() throws Exception {        
         RequestReceiver.closeServer();
-        DAO.close();
+        DAO.getInstance().close();
     }
     
     public static void main(String[] args) {
