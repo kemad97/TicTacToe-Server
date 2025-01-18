@@ -71,7 +71,7 @@ public class DAO {
         con.close();
     }
     
-    public static List<User> getAvailablePlayers() throws SQLException {
+    public  List<User> getAvailablePlayers() throws SQLException {
         
         List<User> availablePlayers = new ArrayList<>();
         
