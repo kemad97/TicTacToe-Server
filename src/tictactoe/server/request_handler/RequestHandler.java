@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -109,6 +111,38 @@ public class RequestHandler extends Thread {
                     Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 break;
+                
+            case "get_available_players":
+            {
+                
+                JSONObject response = new JSONObject();
+                
+                Vector<RequestHandler> availablePlayers = getAvailablePlayers();
+
+                List<Map<String, String>> playerList = new ArrayList<>();
+                
+                for (RequestHandler player : availablePlayers) {
+                    
+                    Map<String, String> playerData = new HashMap<>();
+                    
+                    playerData.put("username", player.user.getUsername());
+                    
+                    playerData.put("score", player.user.getScore().toString());
+                    
+                    playerList.add(playerData);
+                    
+                }
+
+                response.put("header", "available_players");
+                
+                response.put("players", playerList);
+
+                this.dos.writeUTF(response.toString());
+                
+            }
+                       
+                break;
+                
             default:
                 Map<String, String> map = new HashMap<>();
                 map.put("header", "error");
@@ -220,5 +254,25 @@ public class RequestHandler extends Thread {
         }
         return false;
     }
+    
+    
+    private static Vector<RequestHandler> getAvailablePlayers() {
+        
+        Vector<RequestHandler> availablePlayers = new Vector<>();
+        
+        for (RequestHandler userHandler : users) {
+            
+            if (userHandler.user != null && userHandler.user.getStatus() == User.AVAILABLE) {
+                
+                availablePlayers.add(userHandler);
+           
+            }
+            
+        }
+        
+        return availablePlayers;
+        
+    }
+
 
 }

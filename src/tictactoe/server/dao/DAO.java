@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.derby.jdbc.ClientDriver;
@@ -63,5 +65,27 @@ public class DAO {
     public static void close() throws SQLException {
         con.close();
     }
+    
+    public static List<User> getAvailablePlayers() throws SQLException {
+        
+        List<User> availablePlayers = new ArrayList<>();
+        
+        PreparedStatement ps = con.prepareStatement("SELECT * FROM users WHERE status = ?");
+        
+        ps.setInt(1, User.AVAILABLE);
+        
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            
+            availablePlayers.add(new User(rs));
+            
+        }
+        
+        return availablePlayers;
+    }
+
 
 }
+
+
