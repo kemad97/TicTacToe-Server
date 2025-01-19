@@ -1,19 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171" fx:controller="tictactoe.server.main_screen.FXMLMainScreenController">
+<AnchorPane id="AnchorPane" prefHeight="500.0" prefWidth="700.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tictactoe.server.main_screen.FXMLMainScreenController">
     <stylesheets>
         <URL value="@fxmlmainscreen.css" />
     </stylesheets>
    <children>
-      <Button fx:id="start_stop_btn" layoutX="266.0" layoutY="185.0" mnemonicParsing="false" onAction="#changeServerStatus" prefHeight="30.0" prefWidth="68.0" text="Start">
+      <Button fx:id="start_stop_btn" layoutX="53.0" layoutY="381.0" mnemonicParsing="false" onAction="#changeServerStatus" prefHeight="51.0" prefWidth="108.0" text="Start">
          <font>
             <Font size="14.0" />
          </font>
       </Button>
+      <BarChart fx:id="barChart" layoutX="161.0" layoutY="111.0" prefHeight="321.0" prefWidth="525.0" styleClass="barChart" title="Players Status">
+        <xAxis>
+          <CategoryAxis label="User's Statistics" side="BOTTOM" tickLabelFill="#141414">
+               <tickLabelFont>
+                  <Font size="14.0" />
+               </tickLabelFont>
+            </CategoryAxis>
+        </xAxis>
+        <yAxis>
+          <NumberAxis label="Number of Users" side="LEFT" tickLabelFill="#843ce0">
+               <tickLabelFont>
+                  <Font name="System Bold" size="12.0" />
+               </tickLabelFont>
+            </NumberAxis>
+        </yAxis>
+      </BarChart>
    </children>
 </AnchorPane>

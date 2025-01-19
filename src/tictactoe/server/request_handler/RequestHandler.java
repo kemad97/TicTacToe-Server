@@ -77,6 +77,7 @@ public class RequestHandler extends Thread {
                 if (this.user != null) {
                     System.out.println(this.user.getUsername() + " disconnected.");
                     users.remove(this);
+                    sendAvailablePlayersToAll();
                 }
                 break;
             }
@@ -112,31 +113,7 @@ public class RequestHandler extends Thread {
                 
             case "get_available_players":
             {
-                
-                JSONObject response = new JSONObject();
-                
-                Vector<RequestHandler> availablePlayers = getAvailablePlayers();
-
-                List<Map<String, String>> playerList = new ArrayList<>();
-                
-                for (RequestHandler player : availablePlayers) {
-                    
-                    Map<String, String> playerData = new HashMap<>();
-                    
-                    playerData.put("username", player.user.getUsername());
-                    
-                    playerData.put("score", player.user.getScore().toString());
-                    
-                    playerList.add(playerData);
-                    
-                }
-
-                response.put("header", "available_players");
-                
-                response.put("players", playerList);
-
-                this.dos.writeUTF(response.toString());
-                
+                sendAvailablePlayersToAll();
             }
                        
                 break;
@@ -180,7 +157,7 @@ public class RequestHandler extends Thread {
         } catch (SQLNonTransientConnectionException ex) {
             Map<String, String> map = new HashMap<>();
             map.put("header", "error");
-            map.put("message", "server error.");
+            map.put("message", "Internal server error.");
             JSONObject response = new JSONObject(map);
 
             this.dos.writeUTF(response.toString());
@@ -207,7 +184,7 @@ public class RequestHandler extends Thread {
         } catch (SQLNonTransientConnectionException ex) {
             Map<String, String> map = new HashMap<>();
             map.put("header", "error");
-            map.put("message", "server error.");
+            map.put("message", "Internal server error.");
             JSONObject response = new JSONObject(map);
 
             this.dos.writeUTF(response.toString());
@@ -297,6 +274,31 @@ public class RequestHandler extends Thread {
         
         return availablePlayers;
         
+    }
+    
+    private static void sendAvailablePlayersToAll() {
+        JSONObject response = new JSONObject();
+        Vector<RequestHandler> availablePlayers = getAvailablePlayers();
+        List<Map<String, String>> playerList = new ArrayList<>();
+
+        for (RequestHandler player : availablePlayers) {
+            Map<String, String> playerData = new HashMap<>();
+            playerData.put("username", player.user.getUsername());
+            playerData.put("score", player.user.getScore().toString());
+            playerList.add(playerData);
+        }
+
+        response.put("header", "available_players");
+        response.put("players", playerList);
+        
+        for(RequestHandler player : availablePlayers){
+            try {
+                player.dos.writeUTF(response.toString());
+            } catch (IOException ex) {
+                System.out.println("can't connect to " + player.user.getUsername());
+            }
+        }
+
     }
 
 

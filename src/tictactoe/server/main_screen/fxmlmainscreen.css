@@ -3,3 +3,35 @@
     -fx-background-image: url("../../../media/images/background.png");
     -fx-background-size: 100%;
 }
+
+.button{
+    
+    -fx-font: 24px "Abel";
+    -fx-background-color: #BED5EE;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+}
+.button:hover {
+    
+    -fx-background-color:#FF8A00;
+     color: black;
+}
+
+
+.chart-legend {
+    -fx-text-fill: blue;
+}
+
+.chart-bar {    
+    -fx-background-radius: 10px;
+    -fx-padding: 5px; 
+    -fx-padding: 7px;
+    -fx-margin: 8px;
+}
+
+.chart-plot-background {
+    -fx-background-radius: 20px;
+    -fx-background-color: #f0f8ff; 
+}
+
+
