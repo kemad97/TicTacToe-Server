@@ -109,16 +109,16 @@ public class RequestHandler extends Thread {
                     System.out.println("can't connect to client");
                 }
                 break;
-                
+
             case "get_available_players":
-            {
                 sendAvailablePlayersToAll();
-            }
-                       
                 break;
 
             case "request_start_match":
                 handleMatchRequest(jsonObject);
+                break;
+            case "match_response":
+                startMatchResult(jsonObject);
                 break;
             default:
                 Map<String, String> map = new HashMap<>();
@@ -255,26 +255,25 @@ public class RequestHandler extends Thread {
         }
         return false;
     }
-    
-    
+
     private static Vector<RequestHandler> getAvailablePlayers() {
-        
+
         Vector<RequestHandler> availablePlayers = new Vector<>();
-        
+
         for (RequestHandler userHandler : users) {
-            
+
             if (userHandler.user != null && userHandler.user.getStatus() == User.AVAILABLE) {
-                
+
                 availablePlayers.add(userHandler);
-           
+
             }
-            
+
         }
-        
+
         return availablePlayers;
-        
+
     }
-    
+
     private static void sendAvailablePlayersToAll() {
         JSONObject response = new JSONObject();
         Vector<RequestHandler> availablePlayers = getAvailablePlayers();
@@ -289,8 +288,8 @@ public class RequestHandler extends Thread {
 
         response.put("header", "available_players");
         response.put("players", playerList);
-        
-        for(RequestHandler player : availablePlayers){
+
+        for (RequestHandler player : availablePlayers) {
             try {
                 player.dos.writeUTF(response.toString());
             } catch (IOException ex) {
@@ -299,7 +298,6 @@ public class RequestHandler extends Thread {
         }
 
     }
-
 
     private void handleMatchRequest(JSONObject jsonObject) throws IOException {
         String player2_Username = jsonObject.getString("targetPlayer");
@@ -383,8 +381,24 @@ public class RequestHandler extends Thread {
             startGameMessage.put("yourTurn", false); // Player 2 waits for Player 1's move
 
             player2Handler.dos.writeUTF(startGameMessage.toString());
+
+            player1Handler.user.setStatus(User.IN_GAME);
+            player2Handler.user.setStatus(User.IN_GAME);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void startMatchResult(JSONObject jsonObject) throws IOException {
+        if (jsonObject.getString("response").equals("accepted")) {
+            startMatch(this, getPlayerHandler(jsonObject.getString("opponent")));
+            sendAvailablePlayersToAll();
+        } else if (jsonObject.getString("response").equals("declined")) {
+            JSONObject startGameMessage = new JSONObject();
+            startGameMessage.put("header", "request_decline");
+            startGameMessage.put("opponent", this.user.getUsername());
+
+            getPlayerHandler(jsonObject.getString("opponent")).dos.writeUTF(startGameMessage.toString());
         }
     }
 
