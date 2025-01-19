@@ -108,6 +108,7 @@ public class RequestHandler extends Thread {
                     System.out.println("can't connect to client");
                 }
                 break;
+            
                 
             case "get_available_players":
             {
