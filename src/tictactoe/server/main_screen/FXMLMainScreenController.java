@@ -1,6 +1,7 @@
 package tictactoe.server.main_screen;
 
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -11,6 +12,9 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import tictactoe.server.dao.DAO;
+import tictactoe.server.dao.User;
+import tictactoe.server.request_handler.RequestHandler;
 import tictactoe.server.request_handler.RequestReceiver;
 
 public class FXMLMainScreenController implements Initializable {
@@ -32,7 +36,7 @@ public class FXMLMainScreenController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
    
         addBarChart();
-
+        updateUserStatistics();
     }
 
     @FXML
@@ -64,7 +68,47 @@ public class FXMLMainScreenController implements Initializable {
         activeUsers.getData().add(new XYChart.Data<>("Active", 0));
         barChart.getData().addAll(offlineUsers, onlineUsers, activeUsers);
     }
+
+    public void updateChartData(int offlineUsersNum, int onlineUsersNum, int activeUsersNum) {
+        XYChart.Series<String, Number> offlineUsers = barChart.getData().get(0);
+        XYChart.Series<String, Number> onlineUsers = barChart.getData().get(1);
+        XYChart.Series<String, Number> activeUsers = barChart.getData().get(2);
+
+        offlineUsers.getData().get(0).setYValue(offlineUsersNum);
+        textOfflinePlayer.setText(String.valueOf(offlineUsersNum));
+        onlineUsers.getData().get(0).setYValue(onlineUsersNum);
+        textonlinePlayers.setText(String.valueOf(onlineUsersNum));
+        activeUsers.getData().get(0).setYValue(activeUsersNum);
+        textActivePlayer.setText(String.valueOf(activeUsersNum));
+    }
     
-    
+    private void updateUserStatistics() {
+        try {
+            
+            DAO dao = DAO.getInstance();
+            int totalUsers = dao.getTotalPlayers().size(); 
+
+            int onlineUsers = 0;
+            int inGameUsers = 0;
+            
+            for (RequestHandler handler : RequestHandler.getUsers()) {
+                
+                if (handler.getUser() != null) {
+                    if (handler.getUser().getStatus() == User.NOT_AVAILABLE) {
+                        onlineUsers++;
+                    } else if (handler.getUser().getStatus() == User.IN_GAME) {
+                        inGameUsers++;
+                    }
+                }
+            }
+
+            int offlineUsers = totalUsers - onlineUsers;
+
+            updateChartData(offlineUsers, onlineUsers, inGameUsers);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

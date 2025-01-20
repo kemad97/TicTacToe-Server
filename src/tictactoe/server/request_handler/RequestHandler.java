@@ -403,5 +403,14 @@ public class RequestHandler extends Thread {
             getPlayerHandler(jsonObject.getString("opponent")).dos.writeUTF(startGameMessage.toString());
         }
     }
+    
+    public static Vector<RequestHandler> getUsers() {
+        return users;
+    }
+
+    public User getUser() {
+        return this.user;
+    }
+
 
 }

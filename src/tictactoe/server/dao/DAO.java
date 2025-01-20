@@ -5,10 +5,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javafx.scene.control.Alert;
 import org.apache.derby.jdbc.ClientDriver;
 
 public class DAO {
@@ -90,6 +90,26 @@ public class DAO {
         return availablePlayers;
     }
 
+    public List<User> getTotalPlayers() {
+        
+        List<User> availablePlayers = new ArrayList<>();
+
+        String query = "SELECT * FROM users";
+
+        try (PreparedStatement ps = con.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                
+                availablePlayers.add(new User(rs)); 
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();  
+        }
+
+        return availablePlayers;
+    }
 
 }
 
