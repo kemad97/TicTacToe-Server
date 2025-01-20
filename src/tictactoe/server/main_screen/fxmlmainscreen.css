@@ -34,4 +34,10 @@
     -fx-background-color: #f0f8ff; 
 }
 
+.text_feild{
+    
+    -fx-background-radius: 50;
+    -fx-alignment: center;
+}
+
 

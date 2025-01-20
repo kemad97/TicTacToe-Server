@@ -5,6 +5,7 @@
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
@@ -13,26 +14,33 @@
         <URL value="@fxmlmainscreen.css" />
     </stylesheets>
    <children>
-      <Button fx:id="start_stop_btn" layoutX="53.0" layoutY="381.0" mnemonicParsing="false" onAction="#changeServerStatus" prefHeight="51.0" prefWidth="108.0" text="Start">
-         <font>
-            <Font size="14.0" />
-         </font>
-      </Button>
-      <BarChart fx:id="barChart" layoutX="161.0" layoutY="111.0" prefHeight="321.0" prefWidth="525.0" styleClass="barChart" title="Players Status">
-        <xAxis>
-          <CategoryAxis label="User's Statistics" side="BOTTOM" tickLabelFill="#141414">
-               <tickLabelFont>
+      <AnchorPane prefWidth="641.0">
+         <children>
+            <TextField fx:id="textActivePlayer" disable="true" layoutX="549.0" layoutY="96.0" prefHeight="40.0" prefWidth="90.0" styleClass="text_feild" />
+            <TextField fx:id="textonlinePlayers" disable="true" layoutX="408.0" layoutY="96.0" prefHeight="40.0" prefWidth="90.0" styleClass="text_feild" />
+            <TextField fx:id="textOfflinePlayer" disable="true" layoutX="268.0" layoutY="96.0" prefHeight="40.0" prefWidth="90.0" styleClass="text_feild" />
+            <Button fx:id="start_stop_btn" layoutX="53.0" layoutY="381.0" mnemonicParsing="false" onAction="#changeServerStatus" prefHeight="51.0" prefWidth="108.0" text="Start">
+               <font>
                   <Font size="14.0" />
-               </tickLabelFont>
-            </CategoryAxis>
-        </xAxis>
-        <yAxis>
-          <NumberAxis label="Number of Users" side="LEFT" tickLabelFill="#843ce0">
-               <tickLabelFont>
-                  <Font name="System Bold" size="12.0" />
-               </tickLabelFont>
-            </NumberAxis>
-        </yAxis>
-      </BarChart>
+               </font>
+            </Button>
+            <BarChart fx:id="barChart" layoutX="161.0" layoutY="136.0" prefHeight="296.0" prefWidth="525.0" styleClass="barChart">
+              <xAxis>
+                <CategoryAxis label="User's Statistics" side="BOTTOM" tickLabelFill="#141414">
+                     <tickLabelFont>
+                        <Font size="14.0" />
+                     </tickLabelFont>
+                  </CategoryAxis>
+              </xAxis>
+              <yAxis>
+                <NumberAxis label="Number of Users" side="LEFT" tickLabelFill="#843ce0">
+                     <tickLabelFont>
+                        <Font name="System Bold" size="12.0" />
+                     </tickLabelFont>
+                  </NumberAxis>
+              </yAxis>
+            </BarChart>
+         </children>
+      </AnchorPane>
    </children>
 </AnchorPane>
