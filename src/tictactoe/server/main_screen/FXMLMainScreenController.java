@@ -28,10 +28,6 @@ public class FXMLMainScreenController implements Initializable {
     @FXML
     private  TextField textOfflinePlayer, textonlinePlayers, textActivePlayer;
     
-    private  CategoryAxis categoryAxis;
-    private  NumberAxis numberAxis;
-   
-
     @Override
     public void initialize(URL url, ResourceBundle rb) {
    
