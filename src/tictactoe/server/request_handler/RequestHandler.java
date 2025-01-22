@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import org.json.JSONObject;
 import tictactoe.server.dao.DAO;
 import tictactoe.server.dao.User;
+import tictactoe.server.main_screen.FXMLMainScreenController;
 
 public class RequestHandler extends Thread {
 

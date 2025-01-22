@@ -36,7 +36,8 @@ public class FXMLMainScreenController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
    
         addBarChart();
-        updateUserStatistics();
+        updateUserStatus();
+        listenForUpdate();
     }
 
     @FXML
@@ -82,11 +83,11 @@ public class FXMLMainScreenController implements Initializable {
         textActivePlayer.setText(String.valueOf(activeUsersNum));
     }
     
-    private void updateUserStatistics() {
+    private void updateUserStatus() {
         try {
             
             DAO dao = DAO.getInstance();
-            int totalUsers = dao.getTotalPlayers().size(); 
+            int totalUsers = dao.getTotalPlayers(); 
 
             int onlineUsers = 0;
             int inGameUsers = 0;
@@ -94,7 +95,7 @@ public class FXMLMainScreenController implements Initializable {
             for (RequestHandler handler : RequestHandler.getUsers()) {
                 
                 if (handler.getUser() != null) {
-                    if (handler.getUser().getStatus() == User.NOT_AVAILABLE) {
+                    if (handler.getUser().getStatus() == User.AVAILABLE) {
                         onlineUsers++;
                     } else if (handler.getUser().getStatus() == User.IN_GAME) {
                         inGameUsers++;
@@ -102,7 +103,7 @@ public class FXMLMainScreenController implements Initializable {
                 }
             }
 
-            int offlineUsers = totalUsers - onlineUsers;
+            int offlineUsers = totalUsers - (onlineUsers + inGameUsers);
 
             updateChartData(offlineUsers, onlineUsers, inGameUsers);
             
@@ -110,5 +111,28 @@ public class FXMLMainScreenController implements Initializable {
             e.printStackTrace();
         }
     }
+    
+    private void listenForUpdate() {
+        
+        Thread th = new Thread(() -> {
+            while (true) {
+                try {
+                    
+                    updateUserStatus();
+                    
+                    Thread.sleep(5000);
+                    
+                } catch (InterruptedException e) {
+                    
+                    e.printStackTrace();
+                    
+                    break; 
+                }
+            }
+        });
+        
+        th.start(); 
+    }
+
 
 }

@@ -70,47 +70,27 @@ public class DAO {
     public void close() throws SQLException {
         con.close();
     }
-    
-    public  List<User> getAvailablePlayers() throws SQLException {
-        
-        List<User> availablePlayers = new ArrayList<>();
-        
-        PreparedStatement ps = con.prepareStatement("SELECT * FROM users WHERE status = ?");
-        
-        ps.setInt(1, User.AVAILABLE);
-        
-        ResultSet rs = ps.executeQuery();
 
-        while (rs.next()) {
-            
-            availablePlayers.add(new User(rs));
-            
-        }
+    public int getTotalPlayers() {
         
-        return availablePlayers;
-    }
+        int allPlayers = 0;
 
-    public List<User> getTotalPlayers() {
-        
-        List<User> availablePlayers = new ArrayList<>();
-
-        String query = "SELECT * FROM users";
+        String query = "SELECT COUNT(*) AS AllPlayers FROM users";
 
         try (PreparedStatement ps = con.prepareStatement(query);
              ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) {
-                
-                availablePlayers.add(new User(rs)); 
+             if (rs.next()) {
+                allPlayers = rs.getInt("AllPlayers"); 
             }
 
         } catch (SQLException e) {
             e.printStackTrace();  
         }
 
-        return availablePlayers;
+        return allPlayers;
     }
-
+    
 }
 
 
