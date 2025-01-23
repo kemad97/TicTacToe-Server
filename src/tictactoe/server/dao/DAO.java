@@ -5,10 +5,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javafx.scene.control.Alert;
 import org.apache.derby.jdbc.ClientDriver;
 
 public class DAO {
@@ -70,27 +70,27 @@ public class DAO {
     public void close() throws SQLException {
         con.close();
     }
-    
-    public  List<User> getAvailablePlayers() throws SQLException {
-        
-        List<User> availablePlayers = new ArrayList<>();
-        
-        PreparedStatement ps = con.prepareStatement("SELECT * FROM users WHERE status = ?");
-        
-        ps.setInt(1, User.AVAILABLE);
-        
-        ResultSet rs = ps.executeQuery();
 
-        while (rs.next()) {
-            
-            availablePlayers.add(new User(rs));
-            
+    public int getTotalPlayers() {
+        
+        int allPlayers = 0;
+
+        String query = "SELECT COUNT(*) AS AllPlayers FROM users";
+
+        try (PreparedStatement ps = con.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+
+             if (rs.next()) {
+                allPlayers = rs.getInt("AllPlayers"); 
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();  
         }
-        
-        return availablePlayers;
+
+        return allPlayers;
     }
-
-
+    
 }
 
 

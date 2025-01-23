@@ -19,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import tictactoe.server.dao.DAO;
 import tictactoe.server.dao.User;
+import tictactoe.server.main_screen.FXMLMainScreenController;
 import tictactoe.server.referee.Referee;
 
 public class RequestHandler extends Thread {
@@ -305,8 +306,8 @@ public class RequestHandler extends Thread {
 
         response.put("header", "available_players");
         response.put("players", playerList);
-
-        for (RequestHandler player : availablePlayers) {
+        
+        for(RequestHandler player : availablePlayers){
             try {
                 player.dos.writeUTF(response.toString());
             } catch (IOException ex) {
@@ -315,6 +316,8 @@ public class RequestHandler extends Thread {
         }
 
     }
+
+    
 
     private void handleMatchRequest(JSONObject jsonObject) throws IOException {
         String player2_Username = jsonObject.getString("targetPlayer");
@@ -444,6 +447,15 @@ public class RequestHandler extends Thread {
         }
     }
     
+
+    public static Vector<RequestHandler> getUsers() {
+        return users;
+    }
+
+    public User getUser() {
+        return this.user;
+    }
+
     
     /*
     public void handlePlayerMove(JSONObject json){
