@@ -5,16 +5,21 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.sql.SQLNonTransientConnectionException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import tictactoe.server.dao.DAO;
 import tictactoe.server.dao.User;
+import tictactoe.server.referee.Referee;
 
 public class RequestHandler extends Thread {
 
@@ -75,6 +80,7 @@ public class RequestHandler extends Thread {
                 if (this.user != null) {
                     System.out.println(this.user.getUsername() + " disconnected.");
                     users.remove(this);
+                    sendAvailablePlayersToAll();
                 }
                 break;
             }
@@ -106,9 +112,22 @@ public class RequestHandler extends Thread {
                     System.out.println("can't connect to client");
                 }
                 break;
+
+            case "get_available_players":
+                sendAvailablePlayersToAll();
+                break;
+
             case "request_start_match":
                 handleMatchRequest(jsonObject);
                 break;
+            case "match_response":
+                startMatchResult(jsonObject);
+                break;
+                
+            case "move":
+                sendMoveToTheOtherPlayer(jsonObject);
+                break;
+                
             default:
                 Map<String, String> map = new HashMap<>();
                 map.put("header", "error");
@@ -145,7 +164,7 @@ public class RequestHandler extends Thread {
         } catch (SQLNonTransientConnectionException ex) {
             Map<String, String> map = new HashMap<>();
             map.put("header", "error");
-            map.put("message", "server error.");
+            map.put("message", "Internal server error.");
             JSONObject response = new JSONObject(map);
 
             this.dos.writeUTF(response.toString());
@@ -172,7 +191,7 @@ public class RequestHandler extends Thread {
         } catch (SQLNonTransientConnectionException ex) {
             Map<String, String> map = new HashMap<>();
             map.put("header", "error");
-            map.put("message", "server error.");
+            map.put("message", "Internal server error.");
             JSONObject response = new JSONObject(map);
 
             this.dos.writeUTF(response.toString());
@@ -245,6 +264,58 @@ public class RequestHandler extends Thread {
         return false;
     }
 
+    private static Vector<RequestHandler> getAvailablePlayers() {
+
+        Vector<RequestHandler> availablePlayers = new Vector<>();
+
+        for (RequestHandler userHandler : users) {
+
+            if (userHandler.user != null && userHandler.user.getStatus() == User.AVAILABLE) {
+
+                availablePlayers.add(userHandler);
+
+            }
+
+        }
+
+        return availablePlayers;
+
+    }
+
+    public static void notifyAllUsersServerDowen() throws IOException {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("header", "server_down");
+        
+        for (RequestHandler playerHandler : users) {
+            playerHandler.dos.writeUTF(jsonObject.toString());
+        }
+    }
+
+    private static void sendAvailablePlayersToAll() {
+        JSONObject response = new JSONObject();
+        Vector<RequestHandler> availablePlayers = getAvailablePlayers();
+        List<Map<String, String>> playerList = new ArrayList<>();
+
+        for (RequestHandler player : availablePlayers) {
+            Map<String, String> playerData = new HashMap<>();
+            playerData.put("username", player.user.getUsername());
+            playerData.put("score", player.user.getScore().toString());
+            playerList.add(playerData);
+        }
+
+        response.put("header", "available_players");
+        response.put("players", playerList);
+
+        for (RequestHandler player : availablePlayers) {
+            try {
+                player.dos.writeUTF(response.toString());
+            } catch (IOException ex) {
+                System.out.println("can't connect to " + player.user.getUsername());
+            }
+        }
+
+    }
+
     private void handleMatchRequest(JSONObject jsonObject) throws IOException {
         String player2_Username = jsonObject.getString("targetPlayer");
         RequestHandler player2Handler = getPlayerHandler(player2_Username);
@@ -263,6 +334,13 @@ public class RequestHandler extends Thread {
         matchRequest.put("header", "match_request");
         matchRequest.put("fromPlayer", this.user.getUsername());
         player2Handler.dos.writeUTF(matchRequest.toString());
+
+        User player1 = this.user;
+        User player2 = player2Handler.user;
+
+        player1.setStatus(User.NOT_AVAILABLE);
+        player2.setStatus(User.NOT_AVAILABLE);
+        sendAvailablePlayersToAll();
         /*
          // Start a timeout thread
         new Thread(() -> {
@@ -292,7 +370,7 @@ public class RequestHandler extends Thread {
 
     private void handleMatchResponse(JSONObject jsonObject) throws IOException {
         String fromPlayer = jsonObject.getString("fromPlayer"); // Player 1 who initiated the request
-        boolean isAccepted = jsonObject.getBoolean("isAccepted"); // Whether Player 2 accepted the match
+        String isAccepted = jsonObject.getString("isAccepted"); // Whether Player 2 accepted the match
 
         // Get Player 1's handler
         RequestHandler fromPlayerHandler = getPlayerHandler(fromPlayer);
@@ -308,9 +386,18 @@ public class RequestHandler extends Thread {
             fromPlayerHandler.dos.writeUTF(response.toString());
 
             // If accepted, start the game logic
-            if (isAccepted) {
+            if (isAccepted.equals("accepted")) {
+                System.out.println("in accepted");
+
                 startMatch(fromPlayerHandler, this); // Pass both handlers for Player 1 and Player 2
+            } else if (isAccepted.equals("declined")) {
+                System.out.println("in declined");
+                fromPlayerHandler.user.setStatus(User.AVAILABLE);
+                this.user.setStatus(User.AVAILABLE);
+                sendAvailablePlayersToAll();
+
             }
+
         }
     }
 
@@ -320,16 +407,71 @@ public class RequestHandler extends Thread {
             startGameMessage.put("header", "start_game");
             startGameMessage.put("opponent", player2Handler.user.getUsername()); // Player 2's username for Player 1
             startGameMessage.put("yourTurn", true); // Player 1 starts the game
-
+            // URL xSymbolPath = RequestHandler.class.getResource("/media/images/X.png");
+            // startGameMessage.put("symbol", xSymbolPath);
             player1Handler.dos.writeUTF(startGameMessage.toString());
 
             startGameMessage.put("opponent", player1Handler.user.getUsername()); // Player 1's username for Player 2
             startGameMessage.put("yourTurn", false); // Player 2 waits for Player 1's move
-
+            // URL oSymbolPath = RequestHandler.class.getResource("/media/images/O.png");
+            // startGameMessage.put("symbol", oSymbolPath);
             player2Handler.dos.writeUTF(startGameMessage.toString());
+
+            player1Handler.user.setStatus(User.IN_GAME);
+            player2Handler.user.setStatus(User.IN_GAME);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void startMatchResult(JSONObject jsonObject) throws IOException {
+        RequestHandler player2 = getPlayerHandler(jsonObject.getString("opponent"));
+        if (jsonObject.getString("response").equals("accepted")) {
+            //this.user.setStatus(User.IN_GAME);        
+            startMatch(this, player2);
+            sendAvailablePlayersToAll();
+        } else if (jsonObject.getString("response").equals("declined")) {
+            JSONObject startGameMessage = new JSONObject();
+            startGameMessage.put("header", "request_decline");
+            startGameMessage.put("opponent", this.user.getUsername());
+
+            player2.dos.writeUTF(startGameMessage.toString()); //send declined msg
+
+            System.out.println("in declined");
+            player2.user.setStatus(User.AVAILABLE);
+            this.user.setStatus(User.AVAILABLE);
+            sendAvailablePlayersToAll();
+        }
+    }
+    
+    
+    /*
+    public void handlePlayerMove(JSONObject json){
+    
+       String[][] board = new String[3][3];
+       JSONArray gameBoard = json.getJSONArray("board");
+       for(int i=0; i<3; i++){
+           for(int j=0; j<3; j++){
+               board[i][j] = gameBoard.getJSONArray(i).get(j).toString();
+           }
+       }
+       
+        //System.out.println(Referee.checkTicTacToeGameBoard(board));
+       
+    }
+    */
+    
+    public void sendMoveToTheOtherPlayer(JSONObject json){
+    
+        
+        json.put("header", "move_res");
+        try {
+            getPlayerHandler(json.getString("opponent")).dos.writeUTF(json.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        System.out.println(json);
     }
 
 }

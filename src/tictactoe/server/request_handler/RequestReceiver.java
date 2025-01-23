@@ -29,6 +29,7 @@ public class RequestReceiver {
     public static void closeServer() {
         if (serverSocket != null) {
             try {
+                RequestHandler.notifyAllUsersServerDowen();
                 serverSocket.close();
             } catch (IOException ex) {
                 System.out.println("server already down");
