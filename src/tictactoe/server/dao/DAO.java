@@ -5,21 +5,22 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import javafx.scene.control.Alert;
+import java.sql.SQLNonTransientConnectionException;
 import org.apache.derby.jdbc.ClientDriver;
 
 public class DAO {
 
-    private static DAO instance;
+    private static volatile DAO instance;
     private Connection con;
 
     private DAO() throws SQLException {
-        DriverManager.registerDriver(new ClientDriver());
-        con = DriverManager.getConnection("jdbc:derby://localhost:1527/tic_tac_toe", "root", "root");
-
+        try {
+            DriverManager.registerDriver(new ClientDriver());
+            con = DriverManager.getConnection("jdbc:derby://localhost:1527/tic_tac_toe", "root", "root");
+        } catch (SQLNonTransientConnectionException ex) {
+            System.out.println("Database is down!");
+            con = null;
+        }
     }
 
     public static DAO getInstance() throws SQLException {
@@ -28,8 +29,17 @@ public class DAO {
         }
         return instance;
     }
+    
+    public static void deleteInstance(){
+        instance = null;
+    }
 
     private int getMaxID() throws SQLException {
+        if (con == null) {
+            instance = null;
+            throw new SQLNonTransientConnectionException();
+        }
+
         PreparedStatement ps = con.prepareStatement("SELECT MAX(id) as maxID from users");
         ResultSet rs = ps.executeQuery();
 
@@ -41,6 +51,11 @@ public class DAO {
     }
 
     public int saveUser(User user) throws SQLException {
+        if (con == null) {
+            instance = null;
+            throw new SQLNonTransientConnectionException();
+        }
+
         PreparedStatement ps = con.prepareStatement("INSERT INTO users(id, user_name, password) VALUES (?, ?, ?)");
 
         ps.setInt(1, getMaxID() + 1);
@@ -51,6 +66,11 @@ public class DAO {
     }
 
     public User getUserByUsername(String username) throws SQLException {
+        if (con == null) {
+            instance = null;
+            throw new SQLNonTransientConnectionException();
+        }
+
         PreparedStatement ps = con.prepareStatement("SELECT * FROM users WHERE user_name = ?",
                 ResultSet.TYPE_FORWARD_ONLY,
                 ResultSet.CONCUR_READ_ONLY);
@@ -68,29 +88,33 @@ public class DAO {
     }
 
     public void close() throws SQLException {
+        if (con == null) {
+            instance = null;
+            throw new SQLNonTransientConnectionException();
+        }
+
         con.close();
+        instance = null;
     }
 
-    public int getTotalPlayers() {
-        
+    public int getTotalPlayers() throws SQLException {
+        if (con == null) {
+            instance = null;
+            throw new SQLNonTransientConnectionException();
+        }
+
         int allPlayers = 0;
 
         String query = "SELECT COUNT(*) AS AllPlayers FROM users";
 
-        try (PreparedStatement ps = con.prepareStatement(query);
-             ResultSet rs = ps.executeQuery()) {
+        PreparedStatement ps = con.prepareStatement(query);
+        ResultSet rs = ps.executeQuery();
 
-             if (rs.next()) {
-                allPlayers = rs.getInt("AllPlayers"); 
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();  
+        if (rs.next()) {
+            allPlayers = rs.getInt("AllPlayers");
         }
 
         return allPlayers;
     }
-    
+
 }
-
-

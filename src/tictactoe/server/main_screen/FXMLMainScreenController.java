@@ -1,15 +1,17 @@
 package tictactoe.server.main_screen;
 
+import java.awt.Window;
 import java.net.URL;
 import java.sql.SQLException;
+import java.sql.SQLNonTransientConnectionException;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import tictactoe.server.dao.DAO;
@@ -21,16 +23,20 @@ public class FXMLMainScreenController implements Initializable {
 
     @FXML
     private Button start_stop_btn;
-    
+
     @FXML
-    private  BarChart<String, Number> barChart;
-    
+    private BarChart<String, Number> barChart;
+
     @FXML
-    private  TextField textOfflinePlayer, textonlinePlayers, textActivePlayer;
-    
+    private TextField textOfflinePlayer, textonlinePlayers, textActivePlayer;
+
+    public static volatile boolean isUpdatingGraph;
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-   
+
+        isUpdatingGraph = true;
+
         addBarChart();
         updateUserStatus();
         listenForUpdate();
@@ -45,11 +51,10 @@ public class FXMLMainScreenController implements Initializable {
             start_stop_btn.setText("Start");
         }
     }
-    
-    
-    private void addBarChart (){
-        
-        textonlinePlayers.setEditable(false);   
+
+    private void addBarChart() {
+
+        textonlinePlayers.setEditable(false);
         textOfflinePlayer.setEditable(false);
         textActivePlayer.setEditable(false);
 
@@ -59,7 +64,7 @@ public class FXMLMainScreenController implements Initializable {
         onlineUsers.setName("Online Players");
         XYChart.Series<String, Number> activeUsers = new XYChart.Series<>();
         activeUsers.setName("Active Players");
-        
+
         offlineUsers.getData().add(new XYChart.Data<>("offline", 0));
         onlineUsers.getData().add(new XYChart.Data<>("Online", 0));
         activeUsers.getData().add(new XYChart.Data<>("Active", 0));
@@ -78,18 +83,18 @@ public class FXMLMainScreenController implements Initializable {
         activeUsers.getData().get(0).setYValue(activeUsersNum);
         textActivePlayer.setText(String.valueOf(activeUsersNum));
     }
-    
+
     private void updateUserStatus() {
         try {
-            
+
             DAO dao = DAO.getInstance();
-            int totalUsers = dao.getTotalPlayers(); 
+            int totalUsers = dao.getTotalPlayers();
 
             int onlineUsers = 0;
             int inGameUsers = 0;
-            
+
             for (RequestHandler handler : RequestHandler.getUsers()) {
-                
+
                 if (handler.getUser() != null) {
                     if (handler.getUser().getStatus() == User.AVAILABLE) {
                         onlineUsers++;
@@ -102,33 +107,39 @@ public class FXMLMainScreenController implements Initializable {
             int offlineUsers = totalUsers - (onlineUsers + inGameUsers);
 
             updateChartData(offlineUsers, onlineUsers, inGameUsers);
-            
+
+        } catch (SQLNonTransientConnectionException ex) {
+            if(Platform.isFxApplicationThread()){
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setContentText("Database is down!");
+                alert.show();
+            }
+            System.out.println("Database is down.");
+            DAO.deleteInstance();
+            updateChartData(0, 0, 0);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-    
+
     private void listenForUpdate() {
-        
+
         Thread th = new Thread(() -> {
-            while (true) {
+            while (isUpdatingGraph) {
                 try {
-                    
                     updateUserStatus();
-                    
+
                     Thread.sleep(5000);
-                    
+
                 } catch (InterruptedException e) {
-                    
                     e.printStackTrace();
-                    
-                    break; 
+                    break;
                 }
             }
         });
-        
-        th.start(); 
-    }
 
+        th.start();
+    }
 
 }
