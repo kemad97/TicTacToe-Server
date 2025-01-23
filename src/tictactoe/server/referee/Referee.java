@@ -10,16 +10,16 @@ public class Referee {
     //1:: draw
     //2:: x win
     //3:: o win
-    public static int checkTicTacToeGameBoard(char[][] gameBoard) {
+    public static int checkTicTacToeGameBoard(String[][] gameBoard) {
 
         int emptyCells = getEmptyCells(gameBoard);
 
-        char winner = checkWinner(gameBoard);
+        String winner = checkWinner(gameBoard);
 
         switch (winner) {
-            case 'x':
+            case "X":
                 return X_WIN;
-            case 'o':
+            case "O":
                 return O_WIN;
             default:
                 if (emptyCells == 0) {
@@ -31,12 +31,12 @@ public class Referee {
 
     }
 
-    private static int getEmptyCells(char[][] gameBoard) {
+    private static int getEmptyCells(String[][] gameBoard) {
         int emptyCells = 0;
 
-        for (char[] raw : gameBoard) {
-            for (char cell : raw) {
-                if (cell == '_') {
+        for (String[] raw : gameBoard) {
+            for (String cell : raw) {
+                if ("".equals(cell)) {
                     emptyCells++;
                 }
             }
@@ -44,50 +44,50 @@ public class Referee {
         return emptyCells;
     }
 
-    private static char checkWinner(char[][] gameBoard) {
-        char colsResult = checkRows(gameBoard);
-        if (colsResult == 'x' || colsResult == 'o') {
+    private static String checkWinner(String[][] gameBoard) {
+        String colsResult = checkRows(gameBoard);
+        if ("X".equals(colsResult) || "O".equals(colsResult)) {
             return colsResult;
         }
 
-        char rowsResult = checkCols(gameBoard);
-        if (rowsResult == 'x' || rowsResult == 'o') {
+        String rowsResult = checkCols(gameBoard);
+        if ("X".equals(rowsResult) || "O".equals(rowsResult)) {
             return rowsResult;
         }
 
-        char diagonalsResult = checkdiagonals(gameBoard);
-        if (diagonalsResult == 'x' || diagonalsResult == 'o') {
+        String diagonalsResult = checkdiagonals(gameBoard);
+        if ("X".equals(diagonalsResult) || "O".equals(diagonalsResult)) {
             return diagonalsResult;
         }
-        return '_';
+        return "";
     }
 
-    private static char checkRows(char[][] gameBoard) {
-        for (char[] row : gameBoard) {
-            if (row[0] != '_' && row[0] == row[1] && row[1] == row[2]) {
+    private static String checkRows(String[][] gameBoard) {
+        for (String[] row : gameBoard) {
+            if (!"".equals(row[0]) && row[0].equals(row[1]) && row[1].equals(row[2])) {
                 return row[0];
             }
         }
-        return '_';
+        return "";
     }
 
-    private static char checkCols(char[][] gameBoard) {
+    private static String checkCols(String[][] gameBoard) {
         for (int i = 0; i < gameBoard.length; i++) {
-            if (gameBoard[0][i] != '_' && gameBoard[0][i] == gameBoard[1][i] && gameBoard[1][i] == gameBoard[2][i]) {
+            if (!"".equals(gameBoard[0][i]) && gameBoard[0][i].equals(gameBoard[1][i]) && gameBoard[1][i].equals(gameBoard[2][i])) {
                 return gameBoard[0][i];
             }
         }
 
-        return '_';
+        return "";
     }
 
-    private static char checkdiagonals(char[][] gameBoard) {
-        if (gameBoard[0][0] != '_' && gameBoard[0][0] == gameBoard[1][1] && gameBoard[1][1] == gameBoard[2][2]) {
+    private static String checkdiagonals(String[][] gameBoard) {
+        if (!"".equals(gameBoard[0][0]) && gameBoard[0][0].equals(gameBoard[1][1]) && gameBoard[1][1].equals(gameBoard[2][2])) {
             return gameBoard[0][0];
         }
-        if (gameBoard[0][2] != '_' && gameBoard[0][2] == gameBoard[1][1] && gameBoard[1][1] == gameBoard[2][0]) {
+        if (!"".equals(gameBoard[0][2]) && gameBoard[0][2].equals(gameBoard[1][1]) && gameBoard[1][1].equals(gameBoard[2][0])) {
             return gameBoard[0][2];
         }
-        return '_';
+        return "";
     }
 }

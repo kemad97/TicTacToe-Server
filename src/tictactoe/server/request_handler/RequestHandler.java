@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.sql.SQLNonTransientConnectionException;
@@ -14,9 +15,11 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import tictactoe.server.dao.DAO;
 import tictactoe.server.dao.User;
+import tictactoe.server.referee.Referee;
 
 public class RequestHandler extends Thread {
 
@@ -120,6 +123,11 @@ public class RequestHandler extends Thread {
             case "match_response":
                 startMatchResult(jsonObject);
                 break;
+                
+            case "move":
+                sendMoveToTheOtherPlayer(jsonObject);
+                break;
+                
             default:
                 Map<String, String> map = new HashMap<>();
                 map.put("header", "error");
@@ -374,12 +382,14 @@ public class RequestHandler extends Thread {
             startGameMessage.put("header", "start_game");
             startGameMessage.put("opponent", player2Handler.user.getUsername()); // Player 2's username for Player 1
             startGameMessage.put("yourTurn", true); // Player 1 starts the game
-
+            // URL xSymbolPath = RequestHandler.class.getResource("/media/images/X.png");
+            // startGameMessage.put("symbol", xSymbolPath);
             player1Handler.dos.writeUTF(startGameMessage.toString());
 
             startGameMessage.put("opponent", player1Handler.user.getUsername()); // Player 1's username for Player 2
             startGameMessage.put("yourTurn", false); // Player 2 waits for Player 1's move
-
+            // URL oSymbolPath = RequestHandler.class.getResource("/media/images/O.png");
+            // startGameMessage.put("symbol", oSymbolPath);
             player2Handler.dos.writeUTF(startGameMessage.toString());
 
             player1Handler.user.setStatus(User.IN_GAME);
@@ -400,6 +410,36 @@ public class RequestHandler extends Thread {
 
             getPlayerHandler(jsonObject.getString("opponent")).dos.writeUTF(startGameMessage.toString());
         }
+    }
+    
+    
+    /*
+    public void handlePlayerMove(JSONObject json){
+    
+       String[][] board = new String[3][3];
+       JSONArray gameBoard = json.getJSONArray("board");
+       for(int i=0; i<3; i++){
+           for(int j=0; j<3; j++){
+               board[i][j] = gameBoard.getJSONArray(i).get(j).toString();
+           }
+       }
+       
+        //System.out.println(Referee.checkTicTacToeGameBoard(board));
+       
+    }
+    */
+    
+    public void sendMoveToTheOtherPlayer(JSONObject json){
+    
+        
+        json.put("header", "move_res");
+        try {
+            getPlayerHandler(json.getString("opponent")).dos.writeUTF(json.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        System.out.println(json);
     }
 
 }
