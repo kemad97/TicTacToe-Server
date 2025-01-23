@@ -284,7 +284,7 @@ public class RequestHandler extends Thread {
 
     public static void notifyAllUsersServerDowen() throws IOException {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("header", "server_dowen");
+        jsonObject.put("header", "server_down");
         
         for (RequestHandler playerHandler : users) {
             playerHandler.dos.writeUTF(jsonObject.toString());
