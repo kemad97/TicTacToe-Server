@@ -282,7 +282,16 @@ public class RequestHandler extends Thread {
         return availablePlayers;
 
     }
-    
+
+    public static void notifyAllUsersServerDowen() throws IOException {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("header", "server_down");
+        
+        for (RequestHandler playerHandler : users) {
+            playerHandler.dos.writeUTF(jsonObject.toString());
+        }
+    }
+
     private static void sendAvailablePlayersToAll() {
         JSONObject response = new JSONObject();
         Vector<RequestHandler> availablePlayers = getAvailablePlayers();
@@ -328,11 +337,11 @@ public class RequestHandler extends Thread {
         matchRequest.put("header", "match_request");
         matchRequest.put("fromPlayer", this.user.getUsername());
         player2Handler.dos.writeUTF(matchRequest.toString());
-        
+
         User player1 = this.user;
-        User player2= player2Handler.user;
-        
-        player1.setStatus(User.NOT_AVAILABLE);       
+        User player2 = player2Handler.user;
+
+        player1.setStatus(User.NOT_AVAILABLE);
         player2.setStatus(User.NOT_AVAILABLE);
         sendAvailablePlayersToAll();
         /*
@@ -384,16 +393,14 @@ public class RequestHandler extends Thread {
                 System.out.println("in accepted");
 
                 startMatch(fromPlayerHandler, this); // Pass both handlers for Player 1 and Player 2
-            }
-            else if (isAccepted.equals("declined"))
-            {
+            } else if (isAccepted.equals("declined")) {
                 System.out.println("in declined");
                 fromPlayerHandler.user.setStatus(User.AVAILABLE);
-                this.user.setStatus(User.AVAILABLE); 
+                this.user.setStatus(User.AVAILABLE);
                 sendAvailablePlayersToAll();
 
             }
-           
+
         }
     }
 
@@ -420,25 +427,22 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private void startMatchResult(JSONObject jsonObject) throws IOException {    
-           RequestHandler player2= getPlayerHandler(jsonObject.getString("opponent"));
-        if (jsonObject.getString("response").equals("accepted")) 
-        {
+    private void startMatchResult(JSONObject jsonObject) throws IOException {
+        RequestHandler player2 = getPlayerHandler(jsonObject.getString("opponent"));
+        if (jsonObject.getString("response").equals("accepted")) {
             //this.user.setStatus(User.IN_GAME);        
-            startMatch(this,player2);
+            startMatch(this, player2);
             sendAvailablePlayersToAll();
-        } 
-        else if (jsonObject.getString("response").equals("declined")) 
-        {
+        } else if (jsonObject.getString("response").equals("declined")) {
             JSONObject startGameMessage = new JSONObject();
             startGameMessage.put("header", "request_decline");
             startGameMessage.put("opponent", this.user.getUsername());
 
             player2.dos.writeUTF(startGameMessage.toString()); //send declined msg
-            
+
             System.out.println("in declined");
             player2.user.setStatus(User.AVAILABLE);
-            this.user.setStatus(User.AVAILABLE); 
+            this.user.setStatus(User.AVAILABLE);
             sendAvailablePlayersToAll();
         }
     }
