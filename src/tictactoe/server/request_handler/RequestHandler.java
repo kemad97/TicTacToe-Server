@@ -129,6 +129,9 @@ public class RequestHandler extends Thread {
                 sendMoveToTheOtherPlayer(jsonObject);
                 break;
                 
+            case "update_score":
+                updateWinnerScore();
+                
             default:
                 Map<String, String> map = new HashMap<>();
                 map.put("header", "error");
@@ -140,6 +143,20 @@ public class RequestHandler extends Thread {
                 this.dos.writeUTF(response.toString());
         }
 
+    }
+    
+    private void updateWinnerScore(){
+        
+        System.out.println("server recieved request");
+        
+        int updatedScore = this.user.getScore() + 10;
+        this.user.setScore(updatedScore);
+        try {
+            DAO.getInstance().updateScore(user);
+            System.out.println("communicate with database");
+        } catch (SQLException ex) {
+            Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void registerNewUser(JSONObject jsonObject) throws IOException {
@@ -456,22 +473,6 @@ public class RequestHandler extends Thread {
         return this.user;
     }
 
-    
-    /*
-    public void handlePlayerMove(JSONObject json){
-    
-       String[][] board = new String[3][3];
-       JSONArray gameBoard = json.getJSONArray("board");
-       for(int i=0; i<3; i++){
-           for(int j=0; j<3; j++){
-               board[i][j] = gameBoard.getJSONArray(i).get(j).toString();
-           }
-       }
-       
-        //System.out.println(Referee.checkTicTacToeGameBoard(board));
-       
-    }
-    */
     
     public void sendMoveToTheOtherPlayer(JSONObject json){
     

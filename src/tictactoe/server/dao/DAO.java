@@ -29,8 +29,8 @@ public class DAO {
         }
         return instance;
     }
-    
-    public static void deleteInstance(){
+
+    public static void deleteInstance() {
         instance = null;
     }
 
@@ -115,6 +115,19 @@ public class DAO {
         }
 
         return allPlayers;
+    }
+
+    public void updateScore(User user) throws SQLException {
+        if (con == null) {
+            instance = null;
+            throw new SQLNonTransientConnectionException();
+        }
+
+        PreparedStatement preparedStatement = con.prepareStatement("UPDATE Users SET score = ? WHERE user_name = ?");
+        preparedStatement.setInt(1, user.getScore());
+        preparedStatement.setString(2, user.getUsername());
+        preparedStatement.executeUpdate();
+
     }
 
 }
