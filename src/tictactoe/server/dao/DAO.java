@@ -30,8 +30,8 @@ public class DAO {
         }
         return instance;
     }
-    
-    public static void deleteInstance(){
+
+    public static void deleteInstance() {
         instance = null;
     }
 
@@ -98,7 +98,6 @@ public class DAO {
         instance = null;
     }
 
-
     public int getTotalPlayers() throws SQLException {
         if (con == null) {
             instance = null;
@@ -119,13 +118,26 @@ public class DAO {
         return allPlayers;
     }
 
-    public User getUserData(String username) throws SQLException {
-        
+    public void updateScore(User user) throws SQLException {
         if (con == null) {
             instance = null;
             throw new SQLNonTransientConnectionException();
         }
-        
+
+        PreparedStatement preparedStatement = con.prepareStatement("UPDATE Users SET score = ? WHERE user_name = ?");
+        preparedStatement.setInt(1, user.getScore());
+        preparedStatement.setString(2, user.getUsername());
+        preparedStatement.executeUpdate();
+
+    }
+
+    public User getUserData(String username) throws SQLException {
+
+        if (con == null) {
+            instance = null;
+            throw new SQLNonTransientConnectionException();
+        }
+
         User user = null;
 
         PreparedStatement ps = con.prepareStatement("SELECT USER_NAME, SCORE, MATCHES_NO, WON_MATCHES FROM USERS WHERE USER_NAME = ?");

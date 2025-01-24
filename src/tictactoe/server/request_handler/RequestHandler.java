@@ -131,6 +131,9 @@ public class RequestHandler extends Thread {
             case "get_user_profile":
                 sendUserProfile(jsonObject);
                 break;
+ 
+            case "update_score":
+                updateWinnerScore();
 
             default:
                 Map<String, String> map = new HashMap<>();
@@ -143,6 +146,20 @@ public class RequestHandler extends Thread {
                 this.dos.writeUTF(response.toString());
         }
 
+    }
+
+    private void updateWinnerScore() {
+
+        System.out.println("server recieved request");
+
+        int updatedScore = this.user.getScore() + 10;
+        this.user.setScore(updatedScore);
+        try {
+            DAO.getInstance().updateScore(user);
+            System.out.println("communicate with database");
+        } catch (SQLException ex) {
+            Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void registerNewUser(JSONObject jsonObject) throws IOException {
@@ -456,21 +473,6 @@ public class RequestHandler extends Thread {
         return this.user;
     }
 
-    /*
-    public void handlePlayerMove(JSONObject json){
-    
-       String[][] board = new String[3][3];
-       JSONArray gameBoard = json.getJSONArray("board");
-       for(int i=0; i<3; i++){
-           for(int j=0; j<3; j++){
-               board[i][j] = gameBoard.getJSONArray(i).get(j).toString();
-           }
-       }
-       
-        //System.out.println(Referee.checkTicTacToeGameBoard(board));
-       
-    }
-     */
     public void sendMoveToTheOtherPlayer(JSONObject json) {
 
         json.put("header", "move_res");
@@ -484,11 +486,11 @@ public class RequestHandler extends Thread {
     }
 
     private void sendUserProfile(JSONObject jsonObject) throws IOException {
-        
+
         String username = jsonObject.getString("username");
-        
+
         try {
-           
+
             User user = DAO.getInstance().getUserData(username);
 
             if (user != null) {
@@ -504,7 +506,7 @@ public class RequestHandler extends Thread {
                 dos.writeUTF(response.toString());
                 dos.flush();
             } else {
-                
+
                 Map<String, String> errorMap = new HashMap<>();
                 errorMap.put("header", "user_profile");
                 errorMap.put("message", "User not found");
