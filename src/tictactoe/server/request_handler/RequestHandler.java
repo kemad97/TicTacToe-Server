@@ -128,14 +128,19 @@ public class RequestHandler extends Thread {
             case "get_user_profile":
                 sendUserProfile(jsonObject);
                 break;
- 
+
             case "update_score":
                 updateWinnerScore();
-    
+
             case "end_player_game":
                 finalizePlayerMatch();
                 break;
-
+            case "ask_to_be_not_available":
+                notifyUserWithNotAvailableStateChanged();
+                break;
+            case "ask_to_be_available":
+                notifyUserWithAvailableStateChanged();
+                break;
 
             default:
                 Map<String, String> map = new HashMap<>();
@@ -459,8 +464,7 @@ public class RequestHandler extends Thread {
         return this.user;
     }
 
-  
-    public void sendMoveToTheOtherPlayer(JSONObject json){
+    public void sendMoveToTheOtherPlayer(JSONObject json) {
 
         json.put("header", "move_res");
         try {
@@ -471,7 +475,6 @@ public class RequestHandler extends Thread {
 
         System.out.println(json);
     }
-
 
     private void sendUserProfile(JSONObject jsonObject) throws IOException {
 
@@ -511,6 +514,16 @@ public class RequestHandler extends Thread {
         this.user.setStatus(User.AVAILABLE);
         this.dos.writeUTF(new JSONObject().put("header", "end_of_game").toString());
 
+    }
+
+    private void notifyUserWithNotAvailableStateChanged() throws IOException {
+        this.user.setStatus(User.NOT_AVAILABLE);
+        this.dos.writeUTF(new JSONObject().put("header", "your_state_not_available").toString());
+    }
+
+    private void notifyUserWithAvailableStateChanged() throws IOException {
+        this.user.setStatus(User.AVAILABLE);
+        this.dos.writeUTF(new JSONObject().put("header", "your_state_available").toString());
     }
 
 }
