@@ -121,19 +121,23 @@ public class DAO {
 
     public User getUserData(String username) throws SQLException {
         
+        if (con == null) {
+            instance = null;
+            throw new SQLNonTransientConnectionException();
+        }
+        
         User user = null;
 
-        PreparedStatement ps = con.prepareStatement(
-                "SELECT user_name, email, score FROM users WHERE user_name = ?"
-        );
+        PreparedStatement ps = con.prepareStatement("SELECT USER_NAME, SCORE, MATCHES_NO, WON_MATCHES FROM USERS WHERE USER_NAME = ?");
         ps.setString(1, username);
         ResultSet rs = ps.executeQuery();
 
         if (rs.next()) {
             user = new User();
             user.setUsername(rs.getString("user_name"));
-            user.setEmail(rs.getString("email"));
             user.setScore(rs.getInt("score"));
+            user.setMatches_no(rs.getInt("matches_no"));
+            user.setWon_matches(rs.getInt("won_matches"));
         }
 
         return user;

@@ -5,9 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URL;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.sql.SQLNonTransientConnectionException;
@@ -487,8 +484,9 @@ public class RequestHandler extends Thread {
     }
 
     private void sendUserProfile(JSONObject jsonObject) throws IOException {
+        
         String username = jsonObject.getString("username");
-
+        
         try {
            
             User user = DAO.getInstance().getUserData(username);
@@ -497,28 +495,25 @@ public class RequestHandler extends Thread {
                 Map<String, String> map = new HashMap<>();
                 map.put("header", "user_profile");
                 map.put("name", user.getUsername());
-                map.put("email", user.getEmail());
                 map.put("score", String.valueOf(user.getScore()));
-                System.out.print(user.getUsername());
+                map.put("matches_no", String.valueOf(user.getMatches_no()));
+                map.put("won_matches", String.valueOf(user.getWon_matches()));
+                System.out.println("user data: " + map);
 
                 JSONObject response = new JSONObject(map);
                 dos.writeUTF(response.toString());
+                dos.flush();
             } else {
-                Map<String, String> map = new HashMap<>();
-                map.put("header", "error");
-                map.put("message", "User not found");
-
-                JSONObject response = new JSONObject(map);
-                dos.writeUTF(response.toString());
+                
+                Map<String, String> errorMap = new HashMap<>();
+                errorMap.put("header", "user_profile");
+                errorMap.put("message", "User not found");
+                JSONObject errorResponse = new JSONObject(errorMap);
+                dos.writeUTF(errorResponse.toString());
+                dos.flush();
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            Map<String, String> map = new HashMap<>();
-            map.put("header", "error");
-            map.put("message", "Database error");
-
-            JSONObject response = new JSONObject(map);
-            dos.writeUTF(response.toString());
         }
     }
 

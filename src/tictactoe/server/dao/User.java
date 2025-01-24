@@ -17,7 +17,7 @@ public class User {
     private String avatar;
     private Integer matches_no;
     private Integer won_matches;
-    private String email;
+    
 
     public User() {
         score = 0;
@@ -106,15 +106,6 @@ public class User {
     public void setWon_matches(Integer won_matches) {
         this.won_matches = won_matches;
     }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
 }
 
 
