@@ -131,6 +131,10 @@ public class RequestHandler extends Thread {
                 
             case "update_score":
                 updateWinnerScore();
+                break;
+            case "exit_mathc":
+                notifyOtherPlayerToExitGame(jsonObject);
+                break;
                
             default:
                 Map<String, String> map = new HashMap<>();
@@ -469,6 +473,12 @@ public class RequestHandler extends Thread {
     private void finalizePlayerMatch() throws IOException {
         this.user.setStatus(User.AVAILABLE);
         this.dos.writeUTF(new JSONObject().put("header", "end_of_game").toString());
+    }
+
+    private void notifyOtherPlayerToExitGame(JSONObject jsonObject) throws IOException {
+        System.out.println(jsonObject);
+        JSONObject respone = new JSONObject().put("header", "opponent_exit_match");
+        getPlayerHandler(jsonObject.getString("opponent")).dos.writeUTF(respone.toString());
     }
 
 }
