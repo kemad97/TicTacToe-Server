@@ -124,10 +124,14 @@ public class RequestHandler extends Thread {
             case "move":
                 sendMoveToTheOtherPlayer(jsonObject);
                 break;
+            
             case "end_player_game":
                 finalizePlayerMatch();
                 break;
-
+                
+            case "update_score":
+                updateWinnerScore();
+               
             default:
                 Map<String, String> map = new HashMap<>();
                 map.put("header", "error");
@@ -139,6 +143,20 @@ public class RequestHandler extends Thread {
                 this.dos.writeUTF(response.toString());
         }
 
+    }
+    
+    private void updateWinnerScore(){
+        
+        System.out.println("server recieved request");
+        
+        int updatedScore = this.user.getScore() + 10;
+        this.user.setScore(updatedScore);
+        try {
+            DAO.getInstance().updateScore(user);
+            System.out.println("communicate with database");
+        } catch (SQLException ex) {
+            Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void registerNewUser(JSONObject jsonObject) throws IOException {
@@ -341,22 +359,6 @@ public class RequestHandler extends Thread {
         player1.setStatus(User.NOT_AVAILABLE);
         player2.setStatus(User.NOT_AVAILABLE);
         sendAvailablePlayersToAll();
-        /*
-         // Start a timeout thread
-        new Thread(() -> {
-            try {
-                Thread.sleep(30000); // 30-second timeout
-                if (!player2Handler.user.isInMatch()) {
-                    JSONObject timeoutResponse = new JSONObject();
-                    timeoutResponse.put("header", "match_error");
-                    timeoutResponse.put("message", "Match request timed out.");
-                    this.dos.writeUTF(timeoutResponse.toString());
-                }
-            } catch (InterruptedException | IOException e) {
-                e.printStackTrace();
-            }
-        }).start(); */
-
     }
 
     private RequestHandler getPlayerHandler(String username) {
@@ -451,24 +453,9 @@ public class RequestHandler extends Thread {
     public User getUser() {
         return this.user;
     }
-
-    /*
-    public void handlePlayerMove(JSONObject json){
     
-       String[][] board = new String[3][3];
-       JSONArray gameBoard = json.getJSONArray("board");
-       for(int i=0; i<3; i++){
-           for(int j=0; j<3; j++){
-               board[i][j] = gameBoard.getJSONArray(i).get(j).toString();
-           }
-       }
-       
-        //System.out.println(Referee.checkTicTacToeGameBoard(board));
-       
-    }
-     */
-    public void sendMoveToTheOtherPlayer(JSONObject json) {
-
+    public void sendMoveToTheOtherPlayer(JSONObject json){
+    
         json.put("header", "move_res");
         try {
             getPlayerHandler(json.getString("opponent")).dos.writeUTF(json.toString());
