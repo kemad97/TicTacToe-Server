@@ -128,15 +128,18 @@ public class RequestHandler extends Thread {
             case "get_user_profile":
                 sendUserProfile(jsonObject);
                 break;
- 
-            case "update_score":
-                updateWinnerScore();
-    
+
             case "end_player_game":
                 finalizePlayerMatch();
                 break;
-
-
+    
+            case "update_score":
+                updateWinnerScore();
+                break;
+            case "exit_mathc":
+                notifyOtherPlayerToExitGame(jsonObject);
+                break;
+               
             default:
                 Map<String, String> map = new HashMap<>();
                 map.put("header", "error");
@@ -511,6 +514,12 @@ public class RequestHandler extends Thread {
         this.user.setStatus(User.AVAILABLE);
         this.dos.writeUTF(new JSONObject().put("header", "end_of_game").toString());
 
+    }
+
+    private void notifyOtherPlayerToExitGame(JSONObject jsonObject) throws IOException {
+        System.out.println(jsonObject);
+        JSONObject respone = new JSONObject().put("header", "opponent_exit_match");
+        getPlayerHandler(jsonObject.getString("opponent")).dos.writeUTF(respone.toString());
     }
 
 }
