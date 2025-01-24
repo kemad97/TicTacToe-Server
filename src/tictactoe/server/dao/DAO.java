@@ -7,9 +7,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javafx.scene.control.Alert;
 import org.apache.derby.jdbc.ClientDriver;
+import org.json.JSONObject;
 
 public class DAO {
 
@@ -72,25 +75,43 @@ public class DAO {
     }
 
     public int getTotalPlayers() {
-        
+
         int allPlayers = 0;
 
         String query = "SELECT COUNT(*) AS AllPlayers FROM users";
 
         try (PreparedStatement ps = con.prepareStatement(query);
-             ResultSet rs = ps.executeQuery()) {
+                ResultSet rs = ps.executeQuery()) {
 
-             if (rs.next()) {
-                allPlayers = rs.getInt("AllPlayers"); 
+            if (rs.next()) {
+                allPlayers = rs.getInt("AllPlayers");
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();  
+            e.printStackTrace();
         }
 
         return allPlayers;
     }
-    
+
+    public User getUserData(String username) throws SQLException {
+        
+        User user = null;
+
+        PreparedStatement ps = con.prepareStatement(
+                "SELECT user_name, email, score FROM users WHERE user_name = ?"
+        );
+        ps.setString(1, username);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            user = new User();
+            user.setUsername(rs.getString("user_name"));
+            user.setEmail(rs.getString("email"));
+            user.setScore(rs.getInt("score"));
+        }
+
+        return user;
+    }
+
 }
-
-

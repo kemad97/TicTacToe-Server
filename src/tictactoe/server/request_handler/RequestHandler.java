@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.sql.SQLNonTransientConnectionException;
@@ -124,11 +126,15 @@ public class RequestHandler extends Thread {
             case "match_response":
                 startMatchResult(jsonObject);
                 break;
-                
+
             case "move":
                 sendMoveToTheOtherPlayer(jsonObject);
                 break;
-                
+
+            case "get_user_profile":
+                sendUserProfile(jsonObject);
+                break;
+
             default:
                 Map<String, String> map = new HashMap<>();
                 map.put("header", "error");
@@ -286,7 +292,7 @@ public class RequestHandler extends Thread {
     public static void notifyAllUsersServerDowen() throws IOException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("header", "server_down");
-        
+
         for (RequestHandler playerHandler : users) {
             playerHandler.dos.writeUTF(jsonObject.toString());
         }
@@ -306,8 +312,8 @@ public class RequestHandler extends Thread {
 
         response.put("header", "available_players");
         response.put("players", playerList);
-        
-        for(RequestHandler player : availablePlayers){
+
+        for (RequestHandler player : availablePlayers) {
             try {
                 player.dos.writeUTF(response.toString());
             } catch (IOException ex) {
@@ -316,8 +322,6 @@ public class RequestHandler extends Thread {
         }
 
     }
-
-    
 
     private void handleMatchRequest(JSONObject jsonObject) throws IOException {
         String player2_Username = jsonObject.getString("targetPlayer");
@@ -446,7 +450,6 @@ public class RequestHandler extends Thread {
             sendAvailablePlayersToAll();
         }
     }
-    
 
     public static Vector<RequestHandler> getUsers() {
         return users;
@@ -456,7 +459,6 @@ public class RequestHandler extends Thread {
         return this.user;
     }
 
-    
     /*
     public void handlePlayerMove(JSONObject json){
     
@@ -471,19 +473,53 @@ public class RequestHandler extends Thread {
         //System.out.println(Referee.checkTicTacToeGameBoard(board));
        
     }
-    */
-    
-    public void sendMoveToTheOtherPlayer(JSONObject json){
-    
-        
+     */
+    public void sendMoveToTheOtherPlayer(JSONObject json) {
+
         json.put("header", "move_res");
         try {
             getPlayerHandler(json.getString("opponent")).dos.writeUTF(json.toString());
         } catch (IOException ex) {
             Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         System.out.println(json);
+    }
+
+    private void sendUserProfile(JSONObject jsonObject) throws IOException {
+        String username = jsonObject.getString("username");
+
+        try {
+           
+            User user = DAO.getInstance().getUserData(username);
+
+            if (user != null) {
+                Map<String, String> map = new HashMap<>();
+                map.put("header", "user_profile");
+                map.put("name", user.getUsername());
+                map.put("email", user.getEmail());
+                map.put("score", String.valueOf(user.getScore()));
+                System.out.print(user.getUsername());
+
+                JSONObject response = new JSONObject(map);
+                dos.writeUTF(response.toString());
+            } else {
+                Map<String, String> map = new HashMap<>();
+                map.put("header", "error");
+                map.put("message", "User not found");
+
+                JSONObject response = new JSONObject(map);
+                dos.writeUTF(response.toString());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Map<String, String> map = new HashMap<>();
+            map.put("header", "error");
+            map.put("message", "Database error");
+
+            JSONObject response = new JSONObject(map);
+            dos.writeUTF(response.toString());
+        }
     }
 
 }
