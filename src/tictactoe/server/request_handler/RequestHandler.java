@@ -14,12 +14,9 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import tictactoe.server.dao.DAO;
 import tictactoe.server.dao.User;
-import tictactoe.server.main_screen.FXMLMainScreenController;
-import tictactoe.server.referee.Referee;
 
 public class RequestHandler extends Thread {
 
@@ -134,6 +131,11 @@ public class RequestHandler extends Thread {
  
             case "update_score":
                 updateWinnerScore();
+    
+            case "end_player_game":
+                finalizePlayerMatch();
+                break;
+
 
             default:
                 Map<String, String> map = new HashMap<>();
@@ -362,22 +364,6 @@ public class RequestHandler extends Thread {
         player1.setStatus(User.NOT_AVAILABLE);
         player2.setStatus(User.NOT_AVAILABLE);
         sendAvailablePlayersToAll();
-        /*
-         // Start a timeout thread
-        new Thread(() -> {
-            try {
-                Thread.sleep(30000); // 30-second timeout
-                if (!player2Handler.user.isInMatch()) {
-                    JSONObject timeoutResponse = new JSONObject();
-                    timeoutResponse.put("header", "match_error");
-                    timeoutResponse.put("message", "Match request timed out.");
-                    this.dos.writeUTF(timeoutResponse.toString());
-                }
-            } catch (InterruptedException | IOException e) {
-                e.printStackTrace();
-            }
-        }).start(); */
-
     }
 
     private RequestHandler getPlayerHandler(String username) {
@@ -473,7 +459,8 @@ public class RequestHandler extends Thread {
         return this.user;
     }
 
-    public void sendMoveToTheOtherPlayer(JSONObject json) {
+  
+    public void sendMoveToTheOtherPlayer(JSONObject json){
 
         json.put("header", "move_res");
         try {
@@ -484,6 +471,7 @@ public class RequestHandler extends Thread {
 
         System.out.println(json);
     }
+
 
     private void sendUserProfile(JSONObject jsonObject) throws IOException {
 
@@ -517,6 +505,12 @@ public class RequestHandler extends Thread {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private void finalizePlayerMatch() throws IOException {
+        this.user.setStatus(User.AVAILABLE);
+        this.dos.writeUTF(new JSONObject().put("header", "end_of_game").toString());
+
     }
 
 }
