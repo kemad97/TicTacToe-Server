@@ -5,7 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.sql.SQLNonTransientConnectionException;
@@ -15,12 +14,9 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import tictactoe.server.dao.DAO;
 import tictactoe.server.dao.User;
-import tictactoe.server.main_screen.FXMLMainScreenController;
-import tictactoe.server.referee.Referee;
 
 public class RequestHandler extends Thread {
 
@@ -124,11 +120,14 @@ public class RequestHandler extends Thread {
             case "match_response":
                 startMatchResult(jsonObject);
                 break;
-                
+
             case "move":
                 sendMoveToTheOtherPlayer(jsonObject);
                 break;
-                
+            case "end_player_game":
+                finalizePlayerMatch();
+                break;
+
             default:
                 Map<String, String> map = new HashMap<>();
                 map.put("header", "error");
@@ -286,7 +285,7 @@ public class RequestHandler extends Thread {
     public static void notifyAllUsersServerDowen() throws IOException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("header", "server_down");
-        
+
         for (RequestHandler playerHandler : users) {
             playerHandler.dos.writeUTF(jsonObject.toString());
         }
@@ -306,8 +305,8 @@ public class RequestHandler extends Thread {
 
         response.put("header", "available_players");
         response.put("players", playerList);
-        
-        for(RequestHandler player : availablePlayers){
+
+        for (RequestHandler player : availablePlayers) {
             try {
                 player.dos.writeUTF(response.toString());
             } catch (IOException ex) {
@@ -316,8 +315,6 @@ public class RequestHandler extends Thread {
         }
 
     }
-
-    
 
     private void handleMatchRequest(JSONObject jsonObject) throws IOException {
         String player2_Username = jsonObject.getString("targetPlayer");
@@ -446,7 +443,6 @@ public class RequestHandler extends Thread {
             sendAvailablePlayersToAll();
         }
     }
-    
 
     public static Vector<RequestHandler> getUsers() {
         return users;
@@ -456,7 +452,6 @@ public class RequestHandler extends Thread {
         return this.user;
     }
 
-    
     /*
     public void handlePlayerMove(JSONObject json){
     
@@ -471,19 +466,22 @@ public class RequestHandler extends Thread {
         //System.out.println(Referee.checkTicTacToeGameBoard(board));
        
     }
-    */
-    
-    public void sendMoveToTheOtherPlayer(JSONObject json){
-    
-        
+     */
+    public void sendMoveToTheOtherPlayer(JSONObject json) {
+
         json.put("header", "move_res");
         try {
             getPlayerHandler(json.getString("opponent")).dos.writeUTF(json.toString());
         } catch (IOException ex) {
             Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         System.out.println(json);
+    }
+
+    private void finalizePlayerMatch() throws IOException {
+        this.user.setStatus(User.AVAILABLE);
+        this.dos.writeUTF(new JSONObject().put("header", "end_of_game").toString());
     }
 
 }
