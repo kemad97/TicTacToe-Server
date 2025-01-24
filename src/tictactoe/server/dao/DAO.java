@@ -154,5 +154,14 @@ public class DAO {
 
         return user;
     }
+    
+    public void updateMatches_No(String username) throws SQLException {
+        String query = "UPDATE USERS SET MATCHES_NO = MATCHES_NO + 1 WHERE USER_NAME = ?";
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, username);
+            ps.executeUpdate();
+        }
+    }
+
 
 }

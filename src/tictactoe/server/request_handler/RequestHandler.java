@@ -139,6 +139,9 @@ public class RequestHandler extends Thread {
             case "exit_mathc":
                 notifyOtherPlayerToExitGame(jsonObject);
                 break;
+            case "update_matches_NO":
+                updateMatches_No(jsonObject);
+                break;
                
             default:
                 Map<String, String> map = new HashMap<>();
@@ -521,5 +524,17 @@ public class RequestHandler extends Thread {
         JSONObject respone = new JSONObject().put("header", "opponent_exit_match");
         getPlayerHandler(jsonObject.getString("opponent")).dos.writeUTF(respone.toString());
     }
+    
+    private void updateMatches_No(JSONObject jsonObject) {
+        String username = jsonObject.getString("username");
+        try {
+            DAO.getInstance().updateMatches_No(username);
+            System.out.println("The update was successfully completed for: " + username);
+        } catch (SQLException e) {
+            System.err.println("Failed to update matches_NO for: " + username);
+            e.printStackTrace();
+        }
+}
+
 
 }
