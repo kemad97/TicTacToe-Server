@@ -258,6 +258,7 @@ public class RequestHandler extends Thread {
             JSONObject response = new JSONObject(map);
 
             this.dos.writeUTF(response.toString());
+            user = new User();
             return;
         }
 
