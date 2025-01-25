@@ -162,5 +162,18 @@ public class DAO {
         }
     }
 
+    public void updateWinMatches(String username) throws SQLException {
+        String query = "UPDATE USERS SET WON_MATCHES = WON_MATCHES + 1 WHERE USER_NAME = ?";
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, username);
+            int result = ps.executeUpdate();
+            if (result > 0) {
+                System.out.println("The Win Matches is update successfully for: " + username);
+            } else {
+                System.out.println("We can't update Win Matches for: " + username);
+            }
+        }
+    }
+
 
 }

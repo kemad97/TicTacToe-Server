@@ -134,7 +134,8 @@ public class RequestHandler extends Thread {
                 break;
     
             case "update_score":
-                updateWinnerScore();
+                String winnerName = jsonObject.getString("winner");
+                updateWinnerScore(winnerName);
                 break;
             case "exit_mathc":
                 notifyOtherPlayerToExitGame(jsonObject);
@@ -163,7 +164,7 @@ public class RequestHandler extends Thread {
 
     }
 
-    private void updateWinnerScore() {
+    private void updateWinnerScore(String winnerName) {
 
         System.out.println("server recieved request");
 
@@ -171,6 +172,7 @@ public class RequestHandler extends Thread {
         this.user.setScore(updatedScore);
         try {
             DAO.getInstance().updateScore(user);
+            DAO.getInstance().updateWinMatches(winnerName);
             System.out.println("communicate with database");
         } catch (SQLException ex) {
             Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
