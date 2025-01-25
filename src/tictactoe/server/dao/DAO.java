@@ -173,6 +173,7 @@ public class DAO {
                 System.out.println("We can't update Win Matches for: " + username);
             }
         }
+        
     }
 
 
