@@ -17,6 +17,7 @@ The server application is responsible for handling connections, data streams, an
 
 ### Prerequisites:
 - Java Development Kit (JDK) installed on your machine.
+- Internet connection for online multiplayer mode.
 - Create Data Base schema.
   ~~~ sql
   CREATE TABLE users (
@@ -28,7 +29,6 @@ The server application is responsible for handling connections, data streams, an
     matches_no INTEGER NOT NULL DEFAULT 0,
     won_matches INTEGER NOT NULL DEFAULT 0
   );
-
 
 ### Steps:
 1. Clone the repository or download the source code.
