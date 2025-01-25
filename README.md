@@ -19,6 +19,17 @@ The server application is responsible for handling connections, data streams, an
 - Java Development Kit (JDK) installed on your machine.
 - Download Json.jar.
 - Create Data Base schema.
+  ~~~ sql
+  CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    user_name VARCHAR(45) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    score INTEGER NOT NULL DEFAULT 0,
+    avatar VARCHAR(200),
+    matches_no INTEGER NOT NULL DEFAULT 0,
+    won_matches INTEGER NOT NULL DEFAULT 0
+);
+  ~~~
 
 ### Steps:
 1. Clone the repository or download the source code.
