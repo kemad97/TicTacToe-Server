@@ -1,4 +1,4 @@
-
+![Tic Tac Toe](src/media/images/server_screen.png)
 # Tic-Tac-Toe Server
 
 The server application is responsible for handling connections, data streams, and managing user interactions in online mode. Key server features include:
