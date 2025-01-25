@@ -124,18 +124,18 @@ public class RequestHandler extends Thread {
             case "move":
                 sendMoveToTheOtherPlayer(jsonObject);
                 break;
-            
+
             case "end_player_game":
                 finalizePlayerMatch();
                 break;
-                
+
             case "update_score":
                 updateWinnerScore();
                 break;
             case "exit_mathc":
                 notifyOtherPlayerToExitGame(jsonObject);
                 break;
-               
+
             default:
                 Map<String, String> map = new HashMap<>();
                 map.put("header", "error");
@@ -148,11 +148,11 @@ public class RequestHandler extends Thread {
         }
 
     }
-    
-    private void updateWinnerScore(){
-        
+
+    private void updateWinnerScore() {
+
         System.out.println("server recieved request");
-        
+
         int updatedScore = this.user.getScore() + 10;
         this.user.setScore(updatedScore);
         try {
@@ -441,10 +441,11 @@ public class RequestHandler extends Thread {
             startGameMessage.put("header", "request_decline");
             startGameMessage.put("opponent", this.user.getUsername());
 
-            player2.dos.writeUTF(startGameMessage.toString()); //send declined msg
+            if (player2 != null) {
+                player2.dos.writeUTF(startGameMessage.toString()); //send declined msg
+                player2.user.setStatus(User.AVAILABLE);
+            }
 
-            System.out.println("in declined");
-            player2.user.setStatus(User.AVAILABLE);
             this.user.setStatus(User.AVAILABLE);
             sendAvailablePlayersToAll();
         }
@@ -457,9 +458,9 @@ public class RequestHandler extends Thread {
     public User getUser() {
         return this.user;
     }
-    
-    public void sendMoveToTheOtherPlayer(JSONObject json){
-    
+
+    public void sendMoveToTheOtherPlayer(JSONObject json) {
+
         json.put("header", "move_res");
         try {
             getPlayerHandler(json.getString("opponent")).dos.writeUTF(json.toString());
