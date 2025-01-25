@@ -536,7 +536,7 @@ public class RequestHandler extends Thread {
             DAO.getInstance().updateMatches_No(username);
             System.out.println("The update was successfully completed for: " + username);
         } catch (SQLException e) {
-            System.err.println("Failed to update matches_NO for: " + username);
+            System.err.println("We can't update matches_NO for: " + username);
             e.printStackTrace();
         }
     }
