@@ -17,7 +17,8 @@ The server application is responsible for handling connections, data streams, an
 
 ### Prerequisites:
 - Java Development Kit (JDK) installed on your machine.
-- Internet connection for online multiplayer mode.
+- Download Json.jar.
+- Create Data Base schema.
 
 ### Steps:
 1. Clone the repository or download the source code.
