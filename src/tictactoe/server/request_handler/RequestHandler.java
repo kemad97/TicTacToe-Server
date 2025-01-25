@@ -132,7 +132,7 @@ public class RequestHandler extends Thread {
             case "end_player_game":
                 finalizePlayerMatch();
                 break;
-                
+
             case "update_score":
                 String winnerName = jsonObject.getString("winner");
                 updateWinnerScore(winnerName);
@@ -147,9 +147,11 @@ public class RequestHandler extends Thread {
 
             case "ask_to_be_not_available":
                 notifyUserWithNotAvailableStateChanged();
+                sendAvailablePlayersToAll();
                 break;
             case "ask_to_be_available":
                 notifyUserWithAvailableStateChanged();
+                sendAvailablePlayersToAll();
                 break;
 
             default:
@@ -534,7 +536,7 @@ public class RequestHandler extends Thread {
         JSONObject respone = new JSONObject().put("header", "opponent_exit_match");
         getPlayerHandler(jsonObject.getString("opponent")).dos.writeUTF(respone.toString());
     }
-    
+
     private void updateMatches_No(JSONObject jsonObject) {
         String username = jsonObject.getString("username");
         try {
