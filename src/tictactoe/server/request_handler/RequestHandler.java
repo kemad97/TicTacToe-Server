@@ -132,7 +132,7 @@ public class RequestHandler extends Thread {
             case "end_player_game":
                 finalizePlayerMatch();
                 break;
-    
+
             case "update_score":
                 String winnerName = jsonObject.getString("winner");
                 updateWinnerScore(winnerName);
@@ -140,15 +140,18 @@ public class RequestHandler extends Thread {
             case "exit_mathc":
                 notifyOtherPlayerToExitGame(jsonObject);
                 break;
+
             case "update_matches_NO":
                 updateMatches_No(jsonObject);
                 break;
 
             case "ask_to_be_not_available":
                 notifyUserWithNotAvailableStateChanged();
+                sendAvailablePlayersToAll();
                 break;
             case "ask_to_be_available":
                 notifyUserWithAvailableStateChanged();
+                sendAvailablePlayersToAll();
                 break;
                 
             case "delete_user":
@@ -167,6 +170,7 @@ public class RequestHandler extends Thread {
         }
 
     }
+
 
     private void updateWinnerScore(String winnerName) {
 
@@ -461,10 +465,11 @@ public class RequestHandler extends Thread {
             startGameMessage.put("header", "request_decline");
             startGameMessage.put("opponent", this.user.getUsername());
 
-            player2.dos.writeUTF(startGameMessage.toString()); //send declined msg
+            if (player2 != null) {
+                player2.dos.writeUTF(startGameMessage.toString()); //send declined msg
+                player2.user.setStatus(User.AVAILABLE);
+            }
 
-            System.out.println("in declined");
-            player2.user.setStatus(User.AVAILABLE);
             this.user.setStatus(User.AVAILABLE);
             sendAvailablePlayersToAll();
         }
@@ -535,7 +540,7 @@ public class RequestHandler extends Thread {
         JSONObject respone = new JSONObject().put("header", "opponent_exit_match");
         getPlayerHandler(jsonObject.getString("opponent")).dos.writeUTF(respone.toString());
     }
-    
+
     private void updateMatches_No(JSONObject jsonObject) {
         String username = jsonObject.getString("username");
         try {

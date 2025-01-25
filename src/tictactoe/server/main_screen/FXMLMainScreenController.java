@@ -1,6 +1,5 @@
 package tictactoe.server.main_screen;
 
-import java.awt.Window;
 import java.net.URL;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
@@ -96,7 +95,7 @@ public class FXMLMainScreenController implements Initializable {
             for (RequestHandler handler : RequestHandler.getUsers()) {
 
                 if (handler.getUser() != null) {
-                    if (handler.getUser().getStatus() == User.AVAILABLE) {
+                    if (handler.getUser().getStatus() == User.AVAILABLE || handler.getUser().getStatus() == User.NOT_AVAILABLE) {
                         onlineUsers++;
                     } else if (handler.getUser().getStatus() == User.IN_GAME) {
                         inGameUsers++;
@@ -113,6 +112,10 @@ public class FXMLMainScreenController implements Initializable {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
                 alert.setContentText("Database is down!");
+                alert.getDialogPane().getStylesheets().add(getClass().getResource("/commonStyle/alert-style.css").toExternalForm());
+
+                alert.getDialogPane().getStyleClass().add("dialog-pane");
+
                 alert.show();
             }
             System.out.println("Database is down.");
