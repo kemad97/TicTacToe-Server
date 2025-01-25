@@ -150,6 +150,10 @@ public class RequestHandler extends Thread {
             case "ask_to_be_available":
                 notifyUserWithAvailableStateChanged();
                 break;
+                
+            case "delete_user":
+                handleDeleteUser(jsonObject);
+                break;
 
             default:
                 Map<String, String> map = new HashMap<>();
@@ -551,6 +555,45 @@ public class RequestHandler extends Thread {
     private void notifyUserWithAvailableStateChanged() throws IOException {
         this.user.setStatus(User.AVAILABLE);
         this.dos.writeUTF(new JSONObject().put("header", "your_state_available").toString());
+    }
+    
+    private void handleDeleteUser(JSONObject jsonObject) throws IOException {
+        String username = jsonObject.getString("username");
+        JSONObject response = new JSONObject();
+        
+        try{
+                boolean isDeleted = DAO.getInstance().deleteUser(username);
+                if(isDeleted)
+                {
+                    response.put ("header","UserDeleted");
+                    response.put("message", "User deleted successfully");
+
+                }
+                else
+                {
+                     response.put("header", "error");
+                     response.put("message", "User not found");
+                }
+
+        
+            }
+                catch (SQLNonTransientConnectionException ex) 
+                {
+                    response.put("header", "error");
+                    response.put("message", "Database is down");
+                    System.out.println("Database is down!");
+                } 
+                catch (SQLException ex) 
+                {
+                    response.put("header", "error");
+                    response.put("message", "Database error occurred");
+                    ex.printStackTrace();
+                }
+          // Print response before sending
+        System.out.println("Sending response to client: " + response.toString());
+       this.dos.writeUTF(response.toString());
+        this.dos.flush(); // Add flush to ensure the message is sent
+
     }
 
 }

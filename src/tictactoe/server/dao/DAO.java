@@ -174,6 +174,39 @@ public class DAO {
             }
         }
     }
+    
+    public boolean deleteUser(String username) throws SQLException {
+        if(con==null)
+        {
+            instance=null;
+            throw new SQLNonTransientConnectionException();
+        }
+        String query = "DELETE FROM users WHERE user_name = ?";
+        try (PreparedStatement ps = con.prepareStatement(query)) 
+        {
+            ps.setString(1, username);
+            int result = ps.executeUpdate();
+
+            if (result > 0) {
+                System.out.println("User " + username + " deleted successfully");
+                return true;
+            } else {
+                System.out.println("No user found with username: " + username);
+                return false;
+            }
+        } 
+        catch (SQLException e) {
+            System.err.println("Error deleting user: " + username);
+            e.printStackTrace();
+            throw e;
+        }
+    
+    
+    }
 
 
 }
+    
+   
+
+
