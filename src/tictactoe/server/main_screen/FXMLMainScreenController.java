@@ -112,6 +112,10 @@ public class FXMLMainScreenController implements Initializable {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
                 alert.setContentText("Database is down!");
+                alert.getDialogPane().getStylesheets().add(getClass().getResource("/commonStyle/alert-style.css").toExternalForm());
+
+                alert.getDialogPane().getStyleClass().add("dialog-pane");
+
                 alert.show();
             }
             System.out.println("Database is down.");

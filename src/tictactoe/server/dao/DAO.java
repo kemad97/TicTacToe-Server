@@ -130,4 +130,84 @@ public class DAO {
 
     }
 
+    public User getUserData(String username) throws SQLException {
+
+        if (con == null) {
+            instance = null;
+            throw new SQLNonTransientConnectionException();
+        }
+
+        User user = null;
+
+        PreparedStatement ps = con.prepareStatement("SELECT USER_NAME, SCORE, MATCHES_NO, WON_MATCHES FROM USERS WHERE USER_NAME = ?");
+        ps.setString(1, username);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            user = new User();
+            user.setUsername(rs.getString("user_name"));
+            user.setScore(rs.getInt("score"));
+            user.setMatches_no(rs.getInt("matches_no"));
+            user.setWon_matches(rs.getInt("won_matches"));
+        }
+
+        return user;
+    }
+    
+    public void updateMatches_No(String username) throws SQLException {
+        String query = "UPDATE USERS SET MATCHES_NO = MATCHES_NO + 1 WHERE USER_NAME = ?";
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, username);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateWinMatches(String username) throws SQLException {
+        String query = "UPDATE USERS SET WON_MATCHES = WON_MATCHES + 1 WHERE USER_NAME = ?";
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, username);
+            int result = ps.executeUpdate();
+            if (result > 0) {
+                System.out.println("The Win Matches is update successfully for: " + username);
+            } else {
+                System.out.println("We can't update Win Matches for: " + username);
+            }
+        }
+        
+    }
+    
+    public boolean deleteUser(String username) throws SQLException {
+        if(con==null)
+        {
+            instance=null;
+            throw new SQLNonTransientConnectionException();
+        }
+        String query = "DELETE FROM users WHERE user_name = ?";
+        try (PreparedStatement ps = con.prepareStatement(query)) 
+        {
+            ps.setString(1, username);
+            int result = ps.executeUpdate();
+
+            if (result > 0) {
+                System.out.println("User " + username + " deleted successfully");
+                return true;
+            } else {
+                System.out.println("No user found with username: " + username);
+                return false;
+            }
+        } 
+        catch (SQLException e) {
+            System.err.println("Error deleting user: " + username);
+            e.printStackTrace();
+            throw e;
+        }
+    
+    
+    }
+
+
 }
+    
+   
+
+

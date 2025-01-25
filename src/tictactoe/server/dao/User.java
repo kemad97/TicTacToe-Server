@@ -17,6 +17,7 @@ public class User {
     private String avatar;
     private Integer matches_no;
     private Integer won_matches;
+    
 
     public User() {
         score = 0;
@@ -105,7 +106,6 @@ public class User {
     public void setWon_matches(Integer won_matches) {
         this.won_matches = won_matches;
     }
-
 }
 
 

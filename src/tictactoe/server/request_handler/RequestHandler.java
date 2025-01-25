@@ -125,15 +125,37 @@ public class RequestHandler extends Thread {
                 sendMoveToTheOtherPlayer(jsonObject);
                 break;
 
+            case "get_user_profile":
+                sendUserProfile(jsonObject);
+                break;
+
             case "end_player_game":
                 finalizePlayerMatch();
                 break;
 
             case "update_score":
-                updateWinnerScore();
+                String winnerName = jsonObject.getString("winner");
+                updateWinnerScore(winnerName);
                 break;
             case "exit_mathc":
                 notifyOtherPlayerToExitGame(jsonObject);
+                break;
+
+            case "update_matches_NO":
+                updateMatches_No(jsonObject);
+                break;
+
+            case "ask_to_be_not_available":
+                notifyUserWithNotAvailableStateChanged();
+                sendAvailablePlayersToAll();
+                break;
+            case "ask_to_be_available":
+                notifyUserWithAvailableStateChanged();
+                sendAvailablePlayersToAll();
+                break;
+                
+            case "delete_user":
+                handleDeleteUser(jsonObject);
                 break;
 
             default:
@@ -149,7 +171,8 @@ public class RequestHandler extends Thread {
 
     }
 
-    private void updateWinnerScore() {
+
+    private void updateWinnerScore(String winnerName) {
 
         System.out.println("server recieved request");
 
@@ -157,6 +180,7 @@ public class RequestHandler extends Thread {
         this.user.setScore(updatedScore);
         try {
             DAO.getInstance().updateScore(user);
+            DAO.getInstance().updateWinMatches(winnerName);
             System.out.println("communicate with database");
         } catch (SQLException ex) {
             Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -471,15 +495,110 @@ public class RequestHandler extends Thread {
         System.out.println(json);
     }
 
+    private void sendUserProfile(JSONObject jsonObject) throws IOException {
+
+        String username = jsonObject.getString("username");
+
+        try {
+
+            User user = DAO.getInstance().getUserData(username);
+
+            if (user != null) {
+                Map<String, String> map = new HashMap<>();
+                map.put("header", "user_profile");
+                map.put("name", user.getUsername());
+                map.put("score", String.valueOf(user.getScore()));
+                map.put("matches_no", String.valueOf(user.getMatches_no()));
+                map.put("won_matches", String.valueOf(user.getWon_matches()));
+                System.out.println("user data: " + map);
+
+                JSONObject response = new JSONObject(map);
+                dos.writeUTF(response.toString());
+                dos.flush();
+            } else {
+
+                Map<String, String> errorMap = new HashMap<>();
+                errorMap.put("header", "user_profile");
+                errorMap.put("message", "User not found");
+                JSONObject errorResponse = new JSONObject(errorMap);
+                dos.writeUTF(errorResponse.toString());
+                dos.flush();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void finalizePlayerMatch() throws IOException {
         this.user.setStatus(User.AVAILABLE);
         this.dos.writeUTF(new JSONObject().put("header", "end_of_game").toString());
+
     }
 
     private void notifyOtherPlayerToExitGame(JSONObject jsonObject) throws IOException {
         System.out.println(jsonObject);
         JSONObject respone = new JSONObject().put("header", "opponent_exit_match");
         getPlayerHandler(jsonObject.getString("opponent")).dos.writeUTF(respone.toString());
+    }
+
+    private void updateMatches_No(JSONObject jsonObject) {
+        String username = jsonObject.getString("username");
+        try {
+            DAO.getInstance().updateMatches_No(username);
+            System.out.println("The update was successfully completed for: " + username);
+        } catch (SQLException e) {
+            System.err.println("We can't update matches_NO for: " + username);
+            e.printStackTrace();
+        }
+    }
+
+    private void notifyUserWithNotAvailableStateChanged() throws IOException {
+        this.user.setStatus(User.NOT_AVAILABLE);
+        this.dos.writeUTF(new JSONObject().put("header", "your_state_not_available").toString());
+    }
+
+    private void notifyUserWithAvailableStateChanged() throws IOException {
+        this.user.setStatus(User.AVAILABLE);
+        this.dos.writeUTF(new JSONObject().put("header", "your_state_available").toString());
+    }
+    
+    private void handleDeleteUser(JSONObject jsonObject) throws IOException {
+        String username = jsonObject.getString("username");
+        JSONObject response = new JSONObject();
+        
+        try{
+                boolean isDeleted = DAO.getInstance().deleteUser(username);
+                if(isDeleted)
+                {
+                    response.put ("header","UserDeleted");
+                    response.put("message", "User deleted successfully");
+
+                }
+                else
+                {
+                     response.put("header", "error");
+                     response.put("message", "User not found");
+                }
+
+        
+            }
+                catch (SQLNonTransientConnectionException ex) 
+                {
+                    response.put("header", "error");
+                    response.put("message", "Database is down");
+                    System.out.println("Database is down!");
+                } 
+                catch (SQLException ex) 
+                {
+                    response.put("header", "error");
+                    response.put("message", "Database error occurred");
+                    ex.printStackTrace();
+                }
+          // Print response before sending
+        System.out.println("Sending response to client: " + response.toString());
+       this.dos.writeUTF(response.toString());
+        this.dos.flush(); // Add flush to ensure the message is sent
+
     }
 
 }
