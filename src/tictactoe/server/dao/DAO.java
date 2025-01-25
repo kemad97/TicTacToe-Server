@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import org.apache.derby.jdbc.ClientDriver;
-import org.json.JSONObject;
 
 public class DAO {
 
